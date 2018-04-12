@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<strResponse>
+    <resultCode>0</resultCode>
+    <resultMsg></resultMsg>
+    <recordInfo>
+        <fieldInfo>
+            <fieldChName>网元名称</fieldChName>
+            <fieldEnName>neName</fieldEnName>
+            <fieldContent>name1</fieldContent>
+        </fieldInfo><fieldInfo>
+        <fieldChName>网元DN</fieldChName>
+        <fieldEnName>neDn</fieldEnName>
+        <fieldContent>dn1</fieldContent>
+    </fieldInfo><fieldInfo>
+        <fieldChName>网元型号</fieldChName>
+        <fieldEnName>neModel</fieldEnName>
+        <fieldContent>productNme1</fieldContent>
+    </fieldInfo></recordInfo>
+    <recordInfo>
+        <fieldInfo>
+            <fieldChName>网元名称</fieldChName>
+            <fieldEnName>neName</fieldEnName>
+            <fieldContent>name2</fieldContent>
+        </fieldInfo><fieldInfo>
+        <fieldChName>网元DN</fieldChName>
+        <fieldEnName>neDn</fieldEnName>
+        <fieldContent>dn2</fieldContent>
+    </fieldInfo><fieldInfo>
+        <fieldChName>网元型号</fieldChName>
+        <fieldEnName>neModel</fieldEnName>
+        <fieldContent>productNme2</fieldContent>
+    </fieldInfo></recordInfo>
+    <recordInfo>
+        <fieldInfo>
+            <fieldChName>网元名称</fieldChName>
+            <fieldEnName>neName</fieldEnName>
+            <fieldContent>name3</fieldContent>
+        </fieldInfo><fieldInfo>
+        <fieldChName>网元DN</fieldChName>
+        <fieldEnName>neDn</fieldEnName>
+        <fieldContent>dn3</fieldContent>
+    </fieldInfo><fieldInfo>
+        <fieldChName>网元型号</fieldChName>
+        <fieldEnName>neModel</fieldEnName>
+        <fieldContent>productNme3</fieldContent>
+    </fieldInfo></recordInfo>
+</strResponse>
