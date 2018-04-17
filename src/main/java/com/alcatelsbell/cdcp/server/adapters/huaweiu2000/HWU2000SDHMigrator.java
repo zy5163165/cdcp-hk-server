@@ -204,24 +204,24 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
 		getLogger().info("logical = " + migrateLogical);
 
-		System.out.println("test start...");
-		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
-		System.out.println("ctps size=" + ctps.size());
-		
-        if (ctps != null && ctps.size() > 0) {
-            HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
-            for (CTP ctp : ctps) {
-                DSUtil.putIntoValueList(portCtps,ctp.getPortdn(),ctp);
-            }
-            Set<String> ptpDns = portCtps.keySet();
-            for (String ptpDn : ptpDns) {
-                List<CTP> p_ctps = portCtps.get(ptpDn);
-                processCtpsInSamePtp(p_ctps);
-                for (CTP ctp : p_ctps) {
-                    CCTP cctp = transOtnCTP(ctp);
-                }
-            }
-        }
+//		System.out.println("test start...");
+//		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
+//		System.out.println("ctps size=" + ctps.size());
+//		
+//        if (ctps != null && ctps.size() > 0) {
+//            HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
+//            for (CTP ctp : ctps) {
+//                DSUtil.putIntoValueList(portCtps,ctp.getPortdn(),ctp);
+//            }
+//            Set<String> ptpDns = portCtps.keySet();
+//            for (String ptpDn : ptpDns) {
+//                List<CTP> p_ctps = portCtps.get(ptpDn);
+//                processCtpsInSamePtp(p_ctps);
+//                for (CTP ctp : p_ctps) {
+//                    CCTP cctp = transOtnCTP(ctp);
+//                }
+//            }
+//        }
 		
 		// 0.通用实体入库
 		logAction(emsdn + " migrateManagedElement", "同步网元", 1);
