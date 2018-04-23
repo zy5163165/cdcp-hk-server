@@ -2298,16 +2298,18 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             List<CrossConnect> ccs = sd.query("select c from CrossConnect c where dn like '%domain=sdh%'");
             if (ccs != null && ccs.size() > 0) {
                 for (CrossConnect cc : ccs) {
-                    cc.setDn(DNUtil.compressCCDn(cc.getDn()));
+                	if (!"remove".equals(cc.getTag3())) { //有标记的交叉不入库
+                		cc.setDn(DNUtil.compressCCDn(cc.getDn()));
 
+                        String[] actps = cc.getaEndNameList().split(Constant.listSplitReg);
+                        String[] zctps = cc.getzEndNameList().split(Constant.listSplitReg);
 
-
-                    String[] actps = cc.getaEndNameList().split(Constant.listSplitReg);
-                    String[] zctps = cc.getzEndNameList().split(Constant.listSplitReg);
-
-                    newCCs.addAll(U2000MigratorUtil.transCCS(cc,emsdn));
-                    makeupCTP("CC", actps, zctps, di);
-                    makeupCTP("CC", zctps, actps, di);
+                        newCCs.addAll(U2000MigratorUtil.transCCS(cc,emsdn));
+                        makeupCTP("CC", actps, zctps, di);
+                        makeupCTP("CC", zctps, actps, di);
+                	} else {
+                		getLogger().info("有标记的交叉不入库: " + cc.getDn());
+                	}
 
                 }
             }
