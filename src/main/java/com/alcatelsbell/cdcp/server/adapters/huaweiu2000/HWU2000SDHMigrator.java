@@ -1326,7 +1326,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
             for (String ptpDn : ptpDns) {
                 List<CTP> p_ctps = portCtps.get(ptpDn);
-                processCtpsInSamePtp(p_ctps);
+                //20180423 这个逻辑暂时屏蔽，如下：
+                /**
+                 * otn ctp的过滤，浙江也是这样的过滤逻辑么？
+                 * 我觉得cmi可以放开，因为目前数据量里面，已经存在otn 自ctp重复，导致子波各种速率大量冲突的情况。
+                 * 我看了浙江的手机也是这样，所以，cmi就索性放开得了
+                 */
+//                processCtpsInSamePtp(p_ctps);
                 for (CTP ctp : p_ctps) {
                     CCTP cctp = transOtnCTP(ctp);
                     if (cctp != null) {
