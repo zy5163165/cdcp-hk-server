@@ -962,16 +962,26 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		}
 		
 		String condition = " and dn like '%domain=sdh%' ";
+		getLogger().info("migrateSdhCtp delete...");
 		executeTableDeleteByType("C_CTP", emsdn, condition);
 		
 //		List<CrossConnect> crossConnects = sd.query("select c from CrossConnect c where dn like '%domain=sdh%'");
 //		System.out.println("migrateSdhCtp.crossConnects is " + crossConnects.size());
 //		processCTP(ctps, crossConnects);
 		
+		getLogger().info("migrateSdhCtp insert...");
 		List<CCTP> list = insertCtps(ctps);
-		for (CCTP cctp : list) {
+		getLogger().info("migrateSdhCtp ctps.size = " + (Detect.notEmpty(ctps)?ctps.size():0));
+		Iterator<CCTP> iterator = list.iterator();
+		while (iterator.hasNext()) {
+			CCTP cctp = iterator.next();
 			ctpTable.addObject(new T_CTP(cctp));
+			iterator.remove();
 		}
+		getLogger().info("migrateSdhCtp list.size = " + (Detect.notEmpty(list)?list.size():0));
+//		for (CCTP cctp : list) {
+//			ctpTable.addObject(new T_CTP(cctp));
+//		}
 
 	}
     protected void migrateCTPbak() throws Exception {

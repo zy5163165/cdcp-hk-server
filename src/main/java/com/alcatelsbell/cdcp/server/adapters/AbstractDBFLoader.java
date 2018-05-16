@@ -13,6 +13,7 @@ import com.alcatelsbell.cdcp.nbi.irm.*;
 import com.alcatelsbell.cdcp.nbi.model.*;
 import com.alcatelsbell.cdcp.server.MigrateManager;
 import com.alcatelsbell.cdcp.server.MigrateRunnable;
+import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CTP;
 import com.alcatelsbell.cdcp.server.da.DAEntity;
 import com.alcatelsbell.cdcp.server.da.DAUtil;
 import com.alcatelsbell.nms.db.components.service.*;
@@ -1029,7 +1030,11 @@ public abstract class AbstractDBFLoader {
 		getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
 		List<CCTP> cctps = new ArrayList<CCTP>();
 		if (ctps != null && ctps.size() > 0) {
-			for (CTP ctp : ctps) {
+			
+			Iterator<CTP> iterator = ctps.iterator();
+			while (iterator.hasNext()) {
+				CTP ctp = iterator.next();
+				
 				CCTP cctp = transCTP(ctp);
 				if (cctp != null) {
 					cctps.add(cctp);
@@ -1039,7 +1044,21 @@ public abstract class AbstractDBFLoader {
 						System.out.println("cctp = " + cctp);
 					di.insert(cctp);
 				}
+				
+				iterator.remove();
 			}
+			
+//			for (CTP ctp : ctps) {
+//				CCTP cctp = transCTP(ctp);
+//				if (cctp != null) {
+//					cctps.add(cctp);
+//					if (cctp.getPortdn() == null || cctp.getPortdn().trim().isEmpty())
+//						System.out.println("cctp = " + cctp.getDn());
+//					if (cctp.getDn().equals("EMS:QUZ-T2000-3-P@ManagedElement:590467@PTP:/rack=1/shelf=1/slot=2/domain=sdh/port=1@CTP:/sts3c_au4-j=2"))
+//						System.out.println("cctp = " + cctp);
+//					di.insert(cctp);
+//				}
+//			}
 		}
 
 		di.end();
