@@ -609,6 +609,7 @@ public abstract class AbstractDBFLoader {
 	// return sourceId * 10000 + emsid;
 	// }
 	protected void checkEMS(String emsdn, String vendor) throws Exception {
+		getLogger().info("test checkEms-1");
 		if (!EmsJob.JOB_TYPE_SYNC_DEVICE.equals(JOB_TYPE)) {
 			List<ManagedElement> query = sd.query("select c from ManagedElement c ", 0, 1);
 			if (query != null && query.size() > 0) {
@@ -617,6 +618,7 @@ public abstract class AbstractDBFLoader {
 				this.emsdn = emsdn;
 			}
 		}
+		getLogger().info("test checkEms-2");
 
 		if (emsdn == null)
 			throw new Exception("Unkown emsname = " + emsdn);
@@ -628,6 +630,7 @@ public abstract class AbstractDBFLoader {
 			getLogger().error(e, e);
 
 		}
+		getLogger().info("test checkEms-3");
 
 		if (ems == null) {
 			if (vendor == null)
@@ -639,6 +642,7 @@ public abstract class AbstractDBFLoader {
 			ems.setCnName(emsdn);
 			ems.setVendor(vendor);
 			ems.setStatus(Constants.CEMS_STATUS_MIGRATING);
+			getLogger().info("test checkEms-4");
 			saveObject(ems);
 		} else {
 			int i = 0;
@@ -649,9 +653,11 @@ public abstract class AbstractDBFLoader {
 				if (i++ > 10)
 					throw new Exception(emsdn+" Locked by upper level app,and timeout !");
 			}
-			// ems.setStatus(Constants.CEMS_STATUS_MIGRATING);
+			// ems.setStatus(Constants.CEMS_STATUS_MIGRATING)
+			getLogger().info("test checkEms-5");;
 			updateEmsStatus(Constants.CEMS_STATUS_MIGRATING);
 		}
+		getLogger().info("test checkEms-6");
 		emsid = ems.getSid();
 		// if (emsid == null) {
 		// ems.setSid(DatabaseUtil.nextSID(ems));
