@@ -469,6 +469,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                             ts_channels.add(sc);
                         }
                     }
+                    sectionChannels.clear();
 
                //     break;
 
@@ -970,20 +971,57 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 //		processCTP(ctps, crossConnects);
 		
 		getLogger().info("migrateSdhCtp insert...");
-		List<CCTP> list = insertCtps(ctps);
+		insertSdhCtps(ctps);
 		getLogger().info("migrateSdhCtp ctps.size = " + (Detect.notEmpty(ctps)?ctps.size():0));
-		Iterator<CCTP> iterator = list.iterator();
-		while (iterator.hasNext()) {
-			CCTP cctp = iterator.next();
-			ctpTable.addObject(new T_CTP(cctp));
-			iterator.remove();
-		}
-		getLogger().info("migrateSdhCtp list.size = " + (Detect.notEmpty(list)?list.size():0));
+		
+//		Iterator<CCTP> iterator = list.iterator();
+//		while (iterator.hasNext()) {
+//			CCTP cctp = iterator.next();
+//			ctpTable.addObject(new T_CTP(cctp));
+//			iterator.remove();
+//		}
+//		getLogger().info("migrateSdhCtp list.size = " + (Detect.notEmpty(list)?list.size():0));
+		
 //		for (CCTP cctp : list) {
 //			ctpTable.addObject(new T_CTP(cctp));
 //		}
 
 	}
+	
+	protected void insertSdhCtps(List<CTP> ctps) throws Exception {
+		DataInserter di = new DataInserter(emsid);
+		getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
+//		List<CCTP> cctps = new ArrayList<CCTP>();
+		if (ctps != null && ctps.size() > 0) {
+			
+			for (CTP ctp : ctps) {
+				CCTP cctp = transCTP(ctp);
+				if (cctp != null) {
+					di.insert(cctp);
+					ctpTable.addObject(new T_CTP(cctp));
+				}
+			}
+			ctps.clear();
+			
+//			Iterator<CTP> iterator = ctps.iterator();
+//			while (iterator.hasNext()) {
+//				CTP ctp = iterator.next();
+//				
+//				CCTP cctp = transCTP(ctp);
+//				if (cctp != null) {
+////					cctps.add(cctp);
+//					di.insert(cctp);
+//					ctpTable.addObject(new T_CTP(cctp));
+//				}
+//				
+//				iterator.remove();
+//			}
+		}
+
+		di.end();
+//        return cctps;
+	}
+	
     protected void migrateCTPbak() throws Exception {
     //    executeDelete("delete  from CCTP c where c.emsName = '" + emsdn + "'", CCTP.class);
         executeTableDelete("C_CTP", emsdn);
@@ -1321,16 +1359,17 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		
 		insertOtnCtps(ctps);
 	}
-	protected List insertOtnCtps(List<CTP> ctps) throws Exception {
+	protected void insertOtnCtps(List<CTP> ctps) throws Exception {
         DataInserter di = new DataInserter(emsid);
         getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
-        List<CCTP> cctps = new ArrayList<CCTP>();
+//        List<CCTP> cctps = new ArrayList<CCTP>();
         if (ctps != null && ctps.size() > 0) {
 
             HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
             for (CTP ctp : ctps) {
                 DSUtil.putIntoValueList(portCtps,ctp.getPortdn(),ctp);
             }
+            ctps.clear();
 
             Set<String> ptpDns = portCtps.keySet();
 
@@ -1346,17 +1385,18 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 for (CTP ctp : p_ctps) {
                     CCTP cctp = transOtnCTP(ctp);
                     if (cctp != null) {
-                        cctps.add(cctp);
+//                        cctps.add(cctp);
                         DSUtil.putIntoValueList(ptp_ctpMap, cctp.getParentDn(), cctp);
                         ctpMap.put(cctp.getDn(),cctp);
                         di.insert(cctp);
                     }
                 }
             }
+            portCtps.clear();
         }
 
         di.end();
-        return cctps;
+//        return cctps;
     }
 	public CCTP transOtnCTP(CTP ctp) {
         CCTP cctp = super.transCTP(ctp);
@@ -1466,7 +1506,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 }
                 value.add(_route);
             }
-
+            routeList.clear();
 
             if (sncs == null || sncs.isEmpty()) {
                 getLogger().error("SubnetworkConnection is empty");
@@ -1516,6 +1556,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Unknown rate : "+snc.getRate()+"; snc="+snc.getDn());
                 }
             }
+            sncs.clear();
 
             //CTP和高阶通道的映射表，在处理SDH 路由的时候会用来设置路由所属的高阶通道
             HashMap<String,String> ctpDnHighoderpathDn = new HashMap<String, String>();
@@ -1578,6 +1619,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Process Path error "+e, e);
                 }
             }
+            paths.clear();
 
             getLogger().error("无法找到path路由: size="+ noRoutePath);
 
@@ -1621,6 +1663,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Process Route "+ snc.getDn()+" error "+e, e);
                 }
             }
+            e4Routes.clear();
 
             getLogger().error("无法找到E4路由: size="+ noRoutePath);
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1711,6 +1754,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Process Route Error "+e, e);
                 }
             }
+            sdhRoutes.clear();
 
             getLogger().error("无法找到route路由: size="+ noRouteRoute);
             diForCTP.end();
@@ -1728,6 +1772,14 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             di.insert(cPath_ccs);
             di.insert(cPath_channels);
             di.end();
+            
+            cRoutes.clear();
+            cRoute_ccs.clear();
+            cRoute_channels.clear();
+            cpaths.clear();
+            cPath_ccs.clear();
+            cPath_channels.clear();
+            
         } catch (Exception e) {
             getLogger().error(e, e);
         } finally {
@@ -2050,6 +2102,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 cSections.add(csection);
                 //sectionTable.addObject(section);
             }
+            sections.clear();
         }
         di.end();
 
@@ -2181,6 +2234,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 				csection.setZptpId(DatabaseUtil.getSID(CPTP.class, zendtp));
 				di.insert(csection);
 			}
+			sections.clear();
 		}
 		di.end();
 	}
@@ -2329,6 +2383,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
                 }
             }
+            ccs.clear();
 
             removeDuplicateDN(newCCs);
             for (CCrossConnect ccc : newCCs) {
@@ -2337,6 +2392,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 di.insert(ccc);
                 ccTable.addObject(new T_CCrossConnect(ccc));
             }
+            newCCs.clear();
 
         } catch (Exception e) {
             getLogger().error(e, e);
@@ -2430,10 +2486,12 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                         DSUtil.putIntoValueList(ptpCCMap,ncc.getAptp(),ncc);
                     }
                 }
+                ccs.clear();
             }
 
             removeDuplicateDN(newCCs);
             di.insert(newCCs);
+            newCCs.clear();
 
         } catch (Exception e) {
             getLogger().error(e, e);
@@ -2558,6 +2616,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             di.insert(omsList);
             di.insert(omsCClist);
             di.insert(omsSectionList);
+            
+            omsCClist.clear();
+            omsSectionList.clear();
+            
      //       di.updateByDn(updateOTS);
             di.end();
 
@@ -2603,6 +2665,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     }
                 }
             }
+            omsList.clear();
             removeDuplicateDN(waveChannelList);
 
             di = new DataInserter(emsid);
@@ -2617,7 +2680,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             DSUtil.putIntoValueList(ctpWaveChannel,cChannel.getAend(),cChannel);
             DSUtil.putIntoValueList(ctpWaveChannel,cChannel.getZend(),cChannel);
         }
-
+        waveChannelList.clear();
 
         //////////////////////////////////////////////////////////////////////
         HashMap<String,List<String>> subwave_routes = new HashMap<String, List<String>>();
