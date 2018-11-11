@@ -1506,7 +1506,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 }
                 value.add(_route);
             }
-            routeList.clear();
 
             if (sncs == null || sncs.isEmpty()) {
                 getLogger().error("SubnetworkConnection is empty");
@@ -1556,7 +1555,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Unknown rate : "+snc.getRate()+"; snc="+snc.getDn());
                 }
             }
-            sncs.clear();
 
             //CTP和高阶通道的映射表，在处理SDH 路由的时候会用来设置路由所属的高阶通道
             HashMap<String,String> ctpDnHighoderpathDn = new HashMap<String, String>();
@@ -1619,7 +1617,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Process Path error "+e, e);
                 }
             }
-            paths.clear();
 
             getLogger().error("无法找到path路由: size="+ noRoutePath);
 
@@ -1663,7 +1660,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     getLogger().error("Process Route "+ snc.getDn()+" error "+e, e);
                 }
             }
-            e4Routes.clear();
 
             getLogger().error("无法找到E4路由: size="+ noRoutePath);
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1772,6 +1768,11 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             di.insert(cPath_ccs);
             di.insert(cPath_channels);
             di.end();
+            
+            routeList.clear();
+            sncs.clear();
+            paths.clear();
+            e4Routes.clear();
             
             cRoutes.clear();
             cRoute_ccs.clear();
@@ -1980,8 +1981,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         if (cptp.getEoType() == DicConst.EOTYPE_ELECTRIC && "OPTICAL".equals(cptp.getType()))
             cptp.setType("ELECTRICAL");
 
-        if (cptp.getEoType() == DicConst.EOTYPE_UNKNOWN && "OPTICAL".equals(cptp.getType()))
-            cptp.setEoType(DicConst.EOTYPE_OPTIC);
+//        if (cptp.getEoType() == DicConst.EOTYPE_UNKNOWN && "OPTICAL".equals(cptp.getType()))
+//            cptp.setEoType(DicConst.EOTYPE_OPTIC);
 
 
          ptpMap.put(cptp.getDn() ,cptp);
@@ -2383,7 +2384,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
                 }
             }
-            ccs.clear();
 
             removeDuplicateDN(newCCs);
             for (CCrossConnect ccc : newCCs) {
@@ -2392,6 +2392,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 di.insert(ccc);
                 ccTable.addObject(new T_CCrossConnect(ccc));
             }
+            
+            ccs.clear();
             newCCs.clear();
 
         } catch (Exception e) {
@@ -4034,6 +4036,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
     public static void main(String[] args) throws Exception {
         URL resource = HWU2000SDHMigrator.class.getClassLoader().getResource("META-INF/persistence.xml");
+        HashMap<String, String> additionalInfoMap = MigrateUtil.transMapValue("Memo:MOS/9800-MOS/1800 64S001 (W)||LinkType:Fiber||");
+        DicUtil.getSpeed("47||49");
         System.out.println("resource = " + resource);
         String fileName=  "D:\\hwu2000-mt.db";
 //        fileName = "/home/zongyu/opt/hwu2000-mt.db";

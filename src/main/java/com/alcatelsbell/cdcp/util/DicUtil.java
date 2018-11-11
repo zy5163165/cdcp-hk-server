@@ -115,50 +115,12 @@ public class DicUtil {
 		try {
 			List<Integer> list = convertLayerRateList(layerRates);
 			for (int rate : list) {
-				if (rate == DicConst.LR_PHYSICAL_ELECTRICAL || rate == DicConst.LR_Ethernet || rate == 77
-						|| (rate <= 87 && rate >= 79)) {
+				if (rate == DicConst.LR_PHYSICAL_ELECTRICAL) {
 					return DicConst.EOTYPE_ELECTRIC;
-				} else if (rate == DicConst.LR_PHYSICAL_OPTICAL || rate == 22|| rate == 334 || rate == 339 || rate == 331 || (rate <= 112 && rate >= 104)) {
+				} else if (rate == DicConst.LR_PHYSICAL_OPTICAL) {
 					return DicConst.EOTYPE_OPTIC;
 				}
 			}
-
-			// for (int i = 0; i < list.length; i++) {
-			// if (list[i] == DicConst.LR_PHYSICAL_ELECTRICAL || list[i] == DicConst.LR_DSR_Fast_Ethernet || list[i] == DicConst.LR_Ethernet
-			// // || list[i] == DicConst.LR_DS0_64K || list[i] == DicConst.LR_DS0_64K
-			// //
-			// // || list[i] == DicConst.LR_DS0_64K
-			// // || list[i] == DicConst.LR_DSR_2M
-			// // // || list[i] == DicConst.LR_128K
-			// // // || list[i] == DicConst.LAYERRATE_LR_E0
-			// // || list[i] == DicConst.LR_E1_2M || list[i] == DicConst.LR_E2_8M || list[i] == DicConst.LR_E3_34M || list[i] == DicConst.LR_E4_140M
-			// // || list[i] == DicConst.LR_E5_565M
-			// ) {
-			// return DicConst.EOTYPE_ELECTRIC;
-			// }
-			// if (list[i] == DicConst.LR_PHYSICAL_OPTICAL
-			// // || list[i] == DicConst.LR_DSR_Gigabit_Ethernet
-			// // || list[i] == DicConst.LR_Section_OC48_STS48_and_RS_STM16 || list[i] == DicConst.LR_Section_OC3_STS3_and_RS_STM1
-			// // || list[i] == DicConst.LR_Section_OC48_STS48_and_RS_STM16 || list[i] == DicConst.LR_Section_OC48_STS48_and_RS_STM16
-			// // || list[i] == DicConst.LR_Section_OC48_STS48_and_RS_STM16 || list[i] == DicConst.LR_DSR_10Gigabit_Ethernet
-			// // || list[i] == DicConst.LR_OCH_Data_Unit_1 || list[i] == DicConst.LR_DSR_Gigabit_Ethernet || list[i] == DicConst.LR_DSR_Gigabit_Ethernet
-			// )
-			//
-			// //
-			// // //|| list[i] == SysConst.LAYERRATE_LR_RS_STM_1
-			// // //|| list[i] == SysConst.LAYERRATE_LR_RS_STM_4
-			// // || list[i] == DicConst.LAYERRATE_LR_RS_STM_16
-			// // || list[i] == DicConst.LAYERRATE_LR_RS_STM_64
-			// // // || list[i] == SysConst.LAYERRATE_LR_MS_STM_1
-			// // // || list[i] == SysConst.LAYERRATE_LR_MS_STM_4
-			// // || list[i] == DicConst.LAYERRATE_LR_MS_STM_16
-			// // || list[i] == DicConst.LAYERRATE_LR_MS_STM_64)
-			// {
-			// return DicConst.EOTYPE_OPTIC;
-			// }
-			// }
-			// System.out.println(
-			// "Neight 46 nor 47 in list, can't identify the eotype");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
