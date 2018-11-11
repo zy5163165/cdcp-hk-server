@@ -618,6 +618,10 @@ public abstract class AbstractDBFLoader {
 				this.emsdn = emsdn;
 			}
 		}
+		
+//		JPASupport jpaSupport = createJPASupport();
+//		List<CEMS> query = JPAUtil.getInstance().findObjects(jpaSupport, strSql)
+		
 		getLogger().info("test checkEms-2");
 
 		if (emsdn == null)
@@ -686,6 +690,7 @@ public abstract class AbstractDBFLoader {
 		}
 		bos.clear();
 		bos.addAll(map.values());
+		map.clear();
 //        if (count > 0)
 //        getLogger().error("DuplicateDN "+name+" count = " + count);
     }
@@ -1682,6 +1687,12 @@ public abstract class AbstractDBFLoader {
 		csection.setNativeEMSName(section.getNativeEMSName());
 		csection.setOwner(section.getOwner());
 		csection.setAdditionalInfo(section.getAdditionalInfo());
+		
+		HashMap<String, String> additionalInfoMap = MigrateUtil.transMapValue(section.getAdditionalInfo());
+		if (additionalInfoMap != null) {
+			csection.setMemo(additionalInfoMap.get("Memo"));
+		}
+		
 		return csection;
 	}
 	public boolean isEmptyResult(Collection c) {

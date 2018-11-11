@@ -221,7 +221,18 @@ public class CSection extends CdcpObject
     public void setOwner(String owner) {
         this.owner = owner;
     }
-    /* (non-Javadoc)
+    
+    private String memo;
+    
+    public String getMemo() {
+		return memo;
+	}
+
+	public void setMemo(String memo) {
+		this.memo = memo;
+	}
+
+	/* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override
