@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration>
+
+    <appender name="DEFAULT" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" 				value="../log/cdcp.log"/>
+        <param name="MaxFileSize" 		value="2048KB"/>
+        <param name="MaxBackupIndex" 	value="5"/>
+        <param name="Append" 			value="true"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
+    <appender name="CORE" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" 				value="../log/core.log"/>
+        <param name="MaxFileSize" 		value="2048KB"/>
+        <param name="MaxBackupIndex" 	value="5"/>
+        <param name="Append" 			value="true"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
+    <appender name="NODEMASTER" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" 				value="../log/nodemaster.log"/>
+        <param name="MaxFileSize" 		value="2048KB"/>
+        <param name="MaxBackupIndex" 	value="5"/>
+        <param name="Append" 			value="true"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
+    <appender name="ERROR" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" 				value="../log/error.log"/>
+        <param name="MaxFileSize" 		value="2048KB"/>
+        <param name="MaxBackupIndex" 	value="5"/>
+        <param name="Append" 			value="true"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="NBI" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" 				value="../log/nbi.log"/>
+        <param name="MaxFileSize" 		value="2048KB"/>
+        <param name="MaxBackupIndex" 	value="5"/>
+        <param name="Append" 			value="true"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+        <param name="DatePattern" 		value="'.'yyyy-MM-dd"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+        </layout>
+    </appender>
+    <logger name="com.alcatelsbell.cdcp.nbi" additivity="false">
+        <level value="DEBUG" />
+        <appender-ref ref="NBI" />
+    </logger>
+    <logger name="com.alcatelsbell.cdcp" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="DEFAULT" />
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.alcatelsbell.nms" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="CORE" />
+    </logger>
+    <logger name="com.alcatelsbell.cdcp.server.CdcpNodeMaster" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="NODEMASTER" />
+    </logger>
+    <logger name="FileLogger" additivity="false">
+        <level value="DEBUG" />
+    </logger>
+    <!--<logger name="com.alcatelsbell.cdcp.server.adapters" additivity="false">-->
+    <!--<level value="DEBUG" />-->
+    <!--<appender-ref ref="STDOUT" />-->
+    <!--</logger>-->
+    <root>
+        <priority value="INFO"/>
+        <appender-ref ref="ERROR"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</log4j:configuration>

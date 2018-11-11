@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence">
+    <persistence-unit name="pu_data" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <class>org.asb.mule.probe.framework.entity.DeviceInfo</class>
+
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect"/>
+            <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.hbm2ddl.auto" value="none"/>
+			
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+    <persistence-unit name="pu_mgr" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+
+        <class>com.alcatelsbell.nms.valueobject.physical.Managedelement</class>
+        <class>com.alcatelsbell.nms.valueobject.config.BinaryObject</class>
+
+        <class>com.alcatelsbell.nms.valueobject.domain.Report</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.RRegion</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.Role</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.RoleAssign</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.Permission</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.PermissionAssign</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.Operator</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.Interface</class>
+        <class>com.alcatelsbell.nms.valueobject.domain.UsersGroup</class>
+
+        <class>com.alcatelsbell.nms.valueobject.meta.MetaConfig</class>
+        <class>com.alcatelsbell.nms.valueobject.meta.Rule</class>
+        <class>com.alcatelsbell.nms.valueobject.meta.RuleCondition</class>
+        <class>com.alcatelsbell.nms.valueobject.meta.RuleEvent</class>
+
+
+
+        <class>com.alcatelsbell.nms.valueobject.sys.RTopoLink</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.RTopoNode</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.Log</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.Ems</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.SysNode</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.SMessage</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.SMessageAssign</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.Vendor</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.SysInstance</class>
+        <class>com.alcatelsbell.nms.valueobject.sys.MobileDevice</class>
+
+        <class>com.alcatelsbell.nms.modules.task.model.Task</class>
+        <class>com.alcatelsbell.nms.modules.task.model.Schedule</class>
+        <class>org.asb.mule.probe.framework.entity.EDS_PTN</class>
+        <class>com.alcatelsbell.cdcp.common.model.EmsBenchmark</class>
+        <class>com.alcatelsbell.cdcp.common.model.EmsBenchmarkItem</class>
+
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect"/>
+            <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.hbm2ddl.auto" value="none"/>
+
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+    <persistence-unit name="pu_data2" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEthTrunk</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEthRoute</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEthRoute_ETHTrunk</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEthRoute_StaticRoute</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEthTrunk_SDHRoute</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CRoute</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CStaticRoute</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CVirtualBridge</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CChannel</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CCrossConnect</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CCTP</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CDevice</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEMS</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEquipment</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CEquipmentHolder</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CInnerTopology</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CIPAddress</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CMP_CTP</class>
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.COMS</class>-->
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.COTS</class>-->
+        <class>com.alcatelsbell.cdcp.nbi.model.CPath</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CPath_CC</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CPath_Channel</class>
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.CPath_Section</class>-->
+        <class>com.alcatelsbell.cdcp.nbi.model.CPTP</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CRack</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CRoute_CC</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CRoute_Channel</class>
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.CRoute_Section</class>-->
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.CRoute_Topology</class>-->
+        <!--<class>com.alcatelsbell.cdcp.nbi.model.CRoute_Signal</class>-->
+        <class>com.alcatelsbell.cdcp.nbi.model.CSection</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CShelf</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CSignal</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CSlot</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CSubnetwork</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CSubnetworkDevice</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CTransmissionSystem_Channel</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.CTransmissionSystem</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.COMS_CC</class>
+        <class>com.alcatelsbell.cdcp.nbi.model.COMS_Section</class>
+
+
+
+
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect"/>
+            <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.hbm2ddl.auto" value="none"/>
+
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+
+    <persistence-unit name="sqlitePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <class>org.asb.mule.probe.framework.entity.ManagedElement</class>
+        <class>org.asb.mule.probe.framework.entity.EquipmentHolder</class>
+        <class>org.asb.mule.probe.framework.entity.Equipment</class>
+        <class>org.asb.mule.probe.framework.entity.PTP</class>
+        <class>org.asb.mule.probe.framework.entity.CTP</class>
+        <class>org.asb.mule.probe.framework.entity.C_TASK</class>
+        <class>org.asb.mule.probe.framework.entity.Section</class>
+        <class>org.asb.mule.probe.framework.entity.FlowDomainFragment</class>
+        <class>org.asb.mule.probe.framework.entity.IPCrossconnection</class>
+        <class>org.asb.mule.probe.framework.entity.IPRoute</class>
+        <class>org.asb.mule.probe.framework.entity.TrafficTrunk</class>
+        <class>org.asb.mule.probe.framework.entity.R_TrafficTrunk_CC_Section</class>
+        <class>org.asb.mule.probe.framework.entity.R_FTP_PTP</class>
+        <class>org.asb.mule.probe.framework.entity.StaticMacAddress</class>
+        <class>org.asb.mule.probe.framework.entity.FlowDomain</class>
+        <class>org.asb.mule.probe.framework.entity.ProtectionGroup</class>
+        <class>org.asb.mule.probe.framework.entity.TopoNode</class>
+        <class>org.asb.mule.probe.framework.entity.ProtectionSubnetwork</class>
+        <class>org.asb.mule.probe.framework.entity.ProtectionSubnetworkLink</class>
+        <class>org.asb.mule.probe.framework.entity.SubnetworkConnection</class>
+        <class>org.asb.mule.probe.framework.entity.HW_EthService</class>
+        <class>org.asb.mule.probe.framework.entity.HW_VirtualBridge</class>
+        <class>org.asb.mule.probe.framework.entity.HW_VirtualLAN</class>
+        <class>org.asb.mule.probe.framework.entity.HW_MSTPBindingPath</class>
+        <class>org.asb.mule.probe.framework.entity.CrossConnect</class>
+        <class>org.asb.mule.probe.framework.entity.TrailNtwProtection</class>
+
+        <!--<exclude-unlisted-classes>true</exclude-unlisted-classes>-->
+        <properties>
+            <!-- Scan for annotated classes and Hibernate mapping XML files
+            <property name="hibernate.archive.autodetection" value="class, hbm"/>
+            -->
+            <property name="hibernate.dialect" value="com.alcatelsbell.nms.ext.sqlite.SQLiteDialect"/>
+            <property name="hibernate.connection.username" value="root"/>
+
+            <!--<property name="hibernate.connection.driver_class"-->
+            <!--value="org.sqlite.JDBC"/>-->
+            <!--<property name="hibernate.connection.password" value="root"/>-->
+            <!--<property name="hibernate.connection.url" value="jdbc:sqlite:db/smartodn.db"/>-->
+            <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"/>
+            <property name="hibernate.show_sql" value="false"/>
+
+            <property name="hibernate.hbm2ddl.auto" value="none"/>
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.connection.characterEncoding" value="UTF-8"/>
+
+            <property name="hibernate.c3p0.min_size" value="10"/>
+            <property name="hibernate.c3p0.max_size" value="20"/>
+            <property name="hibernate.c3p0.timeout" value="1800"/>
+            <property name="hibernate.c3p0.max_statements" value="50"/>
+        </properties>
+    </persistence-unit>
+</persistence>
