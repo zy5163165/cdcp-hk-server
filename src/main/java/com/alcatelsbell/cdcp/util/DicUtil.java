@@ -145,7 +145,7 @@ public class DicUtil {
 			if (speedByRate != null)
 				return speedByRate;
 		}
-		return "40G";
+		return "";
 	}
 
 	public static String getPtpType(String dn, String layerRates) {

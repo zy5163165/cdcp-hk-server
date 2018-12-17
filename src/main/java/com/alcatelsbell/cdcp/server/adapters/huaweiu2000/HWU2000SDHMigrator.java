@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
+import org.apache.commons.lang.StringUtils;
 import org.asb.mule.probe.framework.entity.CTP;
 import org.asb.mule.probe.framework.entity.CrossConnect;
 import org.asb.mule.probe.framework.entity.Equipment;
@@ -183,6 +184,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     @Override
     public CEquipment transEquipment(Equipment equipment) {
         CEquipment cEquipment = super.transEquipment(equipment);
+        // 型号为TP开头的，如果中间有空格分隔，就从空格处截断掉，空格也不要。
+        String nativeName = cEquipment.getNativeEMSName();
+        if (Detect.notEmpty(nativeName) && nativeName.startsWith("TP")) {
+        	nativeName = StringUtils.substringBefore(nativeName, " ");
+        	cEquipment.setNativeEMSName(nativeName);
+        }
+        
         equipmentMap.put(cEquipment.getDn(),cEquipment);
         return cEquipment;
     }
@@ -1959,7 +1967,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         cptp.setLayerRates(ptp.getRate());
         cptp.setType(DicUtil.getPtpType(cptp.getDn(),cptp.getLayerRates()));
         cptp.setSpeed(DicUtil.getSpeed(cptp.getLayerRates()));
-        if (cptp.getSpeed() == null) cptp.setSpeed("40G");
+//        if (cptp.getSpeed() == null) cptp.setSpeed("40G");
         CEquipment card = equipmentMap.get(carddn);
         if (card != null) {
             String additionalInfo = card.getAdditionalInfo();
@@ -2527,6 +2535,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
 //        List<Section> sections = sd.queryAll(Section.class);
         List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=wdm%'");
+        List<SubnetworkConnection> sncs = sd.query("select c from SubnetworkConnection c where dn like '%-wdm%'");
 
         List<CChannel> waveChannelList = null;
         try {
@@ -2577,6 +2586,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 //                            System.out.println( );
 
                         CSection oms = createOMS(aptp, ptpMap.get(pathFindAlgorithm.endPtp.get(0)));
+                        oms.setMemo(oms.getMemo() + "-sectionOMS");
                         omsList.add(oms);
                          PathFindAlgorithm.FindStack  findStacks = pathFindAlgorithm.findStacks.get(0);
                         List ccAndSections = findStacks.ccAndSections;
@@ -2612,6 +2622,22 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     //                System.out.println("endPtp=" + pathFindAlgorithm.endPtp+" size="+pathFindAlgorithm.endPtp.size());
                 }
             }
+            
+            for (SubnetworkConnection snc : sncs) {
+                checkSuspend();
+               String rate = snc.getRate();
+               if (rate != null) {
+            	   if (rate.equals(HWDic.LR_Optical_Multiplex_Section.value+"")) {
+                       CSection oms = createOMS(ptpMap.get(snc.getaPtp()), ptpMap.get(snc.getzPtp()));
+                       oms.setMemo(oms.getMemo() + "-sncOMS");
+                       omsList.add(oms);
+                       
+                       //ccAndSections
+                   }
+               }
+            }
+            
+            
             getLogger().info("OMS size = "+omsList.size());
             removeDuplicateDN(omsList);
             DataInserter di = new DataInserter(emsid);
@@ -2689,7 +2715,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         List<CChannel> subWaveChannelList = new ArrayList<CChannel>();
 //        List<SubnetworkConnection> sncs = sd.queryAll(SubnetworkConnection.class);
-        List<SubnetworkConnection> sncs = sd.query("select c from SubnetworkConnection c where dn like '%-wdm%'");
+        
         List<CPath> cPaths = new ArrayList<CPath>();
         List<CRoute> cRoutes = new ArrayList<CRoute>();
         List<CRoute_CC> cRoute_ccs = new ArrayList<CRoute_CC>();
@@ -2751,11 +2777,47 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         for (SubnetworkConnection snc : ochList) {
             checkSuspend();
             CPath cPath = U2000MigratorUtil.transPath(emsdn, snc);
-            cPath.setTmRate("40G");
+//            cPath.setTmRate("40G");
             cPath.setRateDesc("OCH");
             cPath.setCategory("OCH");
             CCTP actp = ctpMap.get(snc.getaEnd());
             cPath.setFrequencies(actp == null ? null : actp.getFrequencies());
+            
+            // och带宽，根据och两端ctp的子ctp的dn判断。
+            String tmRate = "";
+            List<CCTP> ctps = new ArrayList<CCTP>();
+            ctps.addAll(ptp_ctpMap.get(snc.getaPtp()));
+            ctps.addAll(ptp_ctpMap.get(snc.getzPtp()));
+            if (Detect.notEmpty(ctps)) {
+            	getLogger().info("Migrate och[" + snc.getDn() + "]ctps size:" + ctps.size());
+                for (CCTP ctp : ctps) {
+                	String dn = StringUtils.substringAfter(ctp.getDn(), "@CTP:");
+                	if (StringUtils.containsIgnoreCase(dn, "otucn") || StringUtils.containsIgnoreCase(dn, "oducn")) {
+                		tmRate = "200G";
+                		break;
+                	}
+                	if (StringUtils.containsIgnoreCase(dn, "otu4") || StringUtils.containsIgnoreCase(dn, "odu4")) {
+                		tmRate = "100G";
+                	}
+                	if (tmRate != "100G" && StringUtils.containsIgnoreCase(dn, "otu3") || StringUtils.containsIgnoreCase(dn, "odu3")) {
+                		tmRate = "40G";
+                	}
+                	if (tmRate != "40G" && StringUtils.containsIgnoreCase(dn, "otu2") || StringUtils.containsIgnoreCase(dn, "odu2")) {
+                		tmRate = "10G";
+                	}
+                	if (tmRate != "10G" && StringUtils.containsIgnoreCase(dn, "otu1") || StringUtils.containsIgnoreCase(dn, "odu1")) {
+                		tmRate = "2.5G";
+                	}
+                	if (tmRate != "2.5G" && StringUtils.containsIgnoreCase(dn, "otu0") || StringUtils.containsIgnoreCase(dn, "odu0")) {
+                		tmRate = "1.25G";
+                	}
+                }
+            } else {
+            	// och没有子ctp
+            	getLogger().info("Migrate och[" + snc.getDn() + "]ctps size:0");
+            }
+            cPath.setTmRate(tmRate);
+            
             cPaths.add(cPath);
             //CChannel subwave = createCChanell(cPath, ctpMap.get(snc.getaEnd()), ctpMap.get(snc.getzEnd()));
             CCTP asideCtp = ctpMap.get(snc.getaEnd());
