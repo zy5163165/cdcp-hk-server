@@ -2536,6 +2536,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 //        List<Section> sections = sd.queryAll(Section.class);
         List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=wdm%'");
         List<SubnetworkConnection> sncs = sd.query("select c from SubnetworkConnection c where dn like '%-wdm%'");
+        HashMap<String, List<R_TrafficTrunk_CC_Section>> routeMap = queryTrafficTrunkCCSectionMap();
 
         List<CChannel> waveChannelList = null;
         try {
@@ -2633,6 +2634,25 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                        omsList.add(oms);
                        
                        //ccAndSections
+                       List<R_TrafficTrunk_CC_Section> routes = routeMap.get(snc.getDn());
+                       for (R_TrafficTrunk_CC_Section route : routes) {
+                          if ("CC".equals(route.getType())) {
+                        	  COMS_CC coms_section = new COMS_CC();
+                              coms_section.setDn(SysUtil.nextDN());
+                              coms_section.setOmsdn(oms.getDn());
+                              coms_section.setCcdn(route.getCcOrSectionDn());
+                              coms_section.setEmsName(emsdn);
+                              omsCClist.add(coms_section);
+                          }
+                          if ("SECTION".equals(route.getType())) {
+                        	  COMS_Section coms_section = new COMS_Section();
+                              coms_section.setDn(SysUtil.nextDN());
+                              coms_section.setOmsdn(oms.getDn());
+                              coms_section.setSectiondn(route.getCcOrSectionDn());
+                              coms_section.setEmsName(emsdn);
+                              omsSectionList.add(coms_section);
+                          }
+                       }
                    }
                }
             }
@@ -2726,7 +2746,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         List<CPath_Channel> cPath_channels = new ArrayList<CPath_Channel>();
         List<CPath_Section> cPath_sections = new ArrayList<CPath_Section>();
 
-        HashMap<String, List<R_TrafficTrunk_CC_Section>> routeMap = queryTrafficTrunkCCSectionMap();
         List<SubnetworkConnection> ochList = new ArrayList<SubnetworkConnection>();
         List<SubnetworkConnection> dsrList = new ArrayList<SubnetworkConnection>();
         for (SubnetworkConnection snc : sncs) {
@@ -2798,18 +2817,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 	}
                 	if (StringUtils.containsIgnoreCase(dn, "otu4") || StringUtils.containsIgnoreCase(dn, "odu4")) {
                 		tmRate = "100G";
+                		break;
                 	}
-                	if (tmRate != "100G" && StringUtils.containsIgnoreCase(dn, "otu3") || StringUtils.containsIgnoreCase(dn, "odu3")) {
+                	if (StringUtils.containsIgnoreCase(dn, "otu3") || StringUtils.containsIgnoreCase(dn, "odu3")) {
                 		tmRate = "40G";
+                		break;
                 	}
-                	if (tmRate != "40G" && StringUtils.containsIgnoreCase(dn, "otu2") || StringUtils.containsIgnoreCase(dn, "odu2")) {
+                	if (StringUtils.containsIgnoreCase(dn, "otu2") || StringUtils.containsIgnoreCase(dn, "odu2")) {
                 		tmRate = "10G";
+                		break;
                 	}
-                	if (tmRate != "10G" && StringUtils.containsIgnoreCase(dn, "otu1") || StringUtils.containsIgnoreCase(dn, "odu1")) {
+                	if (StringUtils.containsIgnoreCase(dn, "otu1") || StringUtils.containsIgnoreCase(dn, "odu1")) {
                 		tmRate = "2.5G";
+                		break;
                 	}
-                	if (tmRate != "2.5G" && StringUtils.containsIgnoreCase(dn, "otu0") || StringUtils.containsIgnoreCase(dn, "odu0")) {
+                	if (StringUtils.containsIgnoreCase(dn, "otu0") || StringUtils.containsIgnoreCase(dn, "odu0")) {
                 		tmRate = "1.25G";
+                		break;
                 	}
                 }
             } else {
