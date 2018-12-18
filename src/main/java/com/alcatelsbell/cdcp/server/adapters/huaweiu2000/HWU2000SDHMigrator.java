@@ -2251,7 +2251,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     public CSection transOtnSection(Section section) {
         CSection cSection = super.transSection(section);
         cSection.setType("OTS");
-        cSection.setSpeed("40G");
+        // ots速率置空
+        cSection.setSpeed("");
         DSUtil.putIntoValueList(ptpSectionMap,cSection.getAendTp(),cSection);
 
         try {
@@ -3086,7 +3087,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         section.setZptpId(zptp.getId());
         section.setDn( aptp.getDn() + "<>" + zptp.getDn());
         section.setEmsName(emsdn);
-        section.setSpeed("40G");
+        // oms速率置空
+        section.setSpeed("");
         section.setRate("41");
         return section;
     }
@@ -3110,7 +3112,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             cChannel.setCategory("波道");
         if (parent instanceof CPath)
             cChannel.setCategory("子波道");
-        cChannel.setTmRate(SDHUtil.getTMRate(acctp.getRate()));
+        // 波道速率置空
+//        cChannel.setTmRate(SDHUtil.getTMRate(acctp.getRate()));
         cChannel.setRateDesc(SDHUtil.rateDesc(acctp.getRate()));
 
         cChannel.setFrequencies(acctp.getFrequencies());
