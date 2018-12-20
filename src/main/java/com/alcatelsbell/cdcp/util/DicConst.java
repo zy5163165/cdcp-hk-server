@@ -144,6 +144,7 @@ public class DicConst {
 
 	public static final int LR_DSR_10Gigabit_Ethernet_LAN = 8008; // hw extend
 	public static final int LR_DSR_10Gigabit_Ethernet_WAN = 8009; // hw extend
+	public static final int LR_DSR_OTU4_Ethernet_WAN = 8043; // hw extend OTU4
     public static final int HWEXT_LR_OCH_Data_Unit_0 = 8031; // hw extend
 	public static final int HWEXT_LR_OCH_Data_Unit_Flexible = 335; // hw extend
 	public static final int LR_T_MPLS_SECTION = 1000; // alu

@@ -198,20 +198,23 @@ public class SDHUtil {
         else if (HWDic.LR_E5_565M.value == rate) {
             return "565M";
         }
-        else if (HWDic.LR_DSR_OC3_STM1.value == rate) {
+        else if (HWDic.LR_DSR_OC3_STM1.value == rate) { //73
             return "155M";
         }
-        else if (HWDic.LR_DSR_OC12_STM4.value == rate || HWDic.LR_STS12c_and_VC4_4c.value == rate) {
+        else if (HWDic.LR_DSR_OC12_STM4.value == rate || HWDic.LR_STS12c_and_VC4_4c.value == rate) { //74
             return "622M";
         }
-//            else if (HWDic.LR_DSR_OC24_STM8.value == rate) {
-//                return "565M";
-//            }
-        else if (HWDic.LR_DSR_OC48_and_STM16.value == rate) {
+        else if (HWDic.LR_DSR_OC24_STM8.value == rate) { // 75
+            return "1.25G";
+        }
+        else if (HWDic.LR_DSR_OC48_and_STM16.value == rate) { //76
             return "2.5G";
         }
-        else if (HWDic.LR_DSR_OC192_and_STM64.value == rate) {
+        else if (HWDic.LR_DSR_OC192_and_STM64.value == rate) { //77
             return "10G";
+        }
+        else if (HWDic.LR_DSR_OC768_and_STM256.value == rate) { //78
+            return "40G";
         }
             
             else if (DicConst.LR_DSR_2M == rate) {
@@ -240,14 +243,26 @@ public class SDHUtil {
             return "40G";
         }
 
-        else if (rate == DicConst.LR_DSR_10Gigabit_Ethernet){
+        else if (rate == DicConst.LR_DSR_Gigabit_Ethernet){ //87
+            return "1.25G";
+        }
+        else if (rate == DicConst.LR_DSR_OTU1){ //110
+            return "2.5G";
+        }
+        else if (rate == DicConst.LR_DSR_OTU2){ //111
+            return "2.5G";
+        }
+        else if (rate == DicConst.LR_DSR_10Gigabit_Ethernet){ //113
             return "10G";
         }
-        else if (rate == DicConst.LR_DSR_Gigabit_Ethernet){
-            return "1G";
+        else if (rate == DicConst.LR_DSR_10Gigabit_Ethernet_LAN){ //8008
+            return "10G";
         }
-        else if (rate == DicConst.LR_DSR_Gigabit_Ethernet){
-            return "1G";
+        else if (rate == DicConst.LR_DSR_10Gigabit_Ethernet_WAN){ //8009
+            return "10G";
+        }
+        else if (rate == DicConst.LR_DSR_OTU4_Ethernet_WAN){ //huawei OTU4 8043
+            return "100G";
         }
 
 
