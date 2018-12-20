@@ -2568,6 +2568,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             List<CSection> updateOTS = new ArrayList<CSection>();
             List<COMS_CC> omsCClist = new ArrayList<COMS_CC>();
             List<COMS_Section> omsSectionList = new ArrayList<COMS_Section>();
+            // 不再使用老方法分析入库oms
+            /*
             for (CSection cSection : cSections) {
                 String aendTp = cSection.getAendTp();
                 CPTP aptp = ptpMap.get(aendTp);
@@ -2624,6 +2626,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     //                System.out.println("endPtp=" + pathFindAlgorithm.endPtp+" size="+pathFindAlgorithm.endPtp.size());
                 }
             }
+            */
             
             for (SubnetworkConnection snc : sncs) {
                 checkSuspend();
@@ -2632,6 +2635,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             	   if (rate.equals(HWDic.LR_Optical_Multiplex_Section.value+"")) {
                        CSection oms = createOMS(ptpMap.get(snc.getaPtp()), ptpMap.get(snc.getzPtp()));
                        oms.setMemo(oms.getMemo() + "-sncOMS");
+                       oms.setDn(snc.getDn());
                        omsList.add(oms);
                        
                        //ccAndSections
@@ -2762,30 +2766,58 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 //                    else dsrList.add(snc);
 
                 }
-                else if (rate.equals(HWDic.LR_DSR_10Gigabit_Ethernet.value+"")) {
+                // DSR入库逻辑变更
+                else if (rate.equals(HWDic.LR_DSR_OC3_STM1.value+"")) { //73
                     dsrList.add(snc);
                 }
-                else if (rate.equals(HWDic.LR_DSR_OC48_and_STM16.value+"")) {
+                else if (rate.equals(HWDic.LR_DSR_OC12_STM4.value+"")) { //74
                     dsrList.add(snc);
                 }
-                else if (rate.equals(HWDic.LR_DSR_OC192_and_STM64.value+"")) {
+                else if (rate.equals(HWDic.LR_DSR_OC24_STM8.value+"")) { //75
                     dsrList.add(snc);
                 }
-                else if (rate.equals(HWDic.LR_DSR_Gigabit_Ethernet.value+"")) {
+                else if (rate.equals(HWDic.LR_DSR_OC48_and_STM16.value+"")) { //76
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(HWDic.LR_DSR_OC192_and_STM64.value+"")) { //77
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(HWDic.LR_DSR_OC768_and_STM256.value+"")) { //78
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(HWDic.LR_DSR_Gigabit_Ethernet.value+"")) { //87
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(DicConst.LR_DSR_OTU1+"")) { //110
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(DicConst.LR_DSR_OTU2+"")) { //111
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(HWDic.LR_DSR_10Gigabit_Ethernet.value+"")) { //113
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(DicConst.LR_DSR_10Gigabit_Ethernet_LAN+"")) { //8008
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(DicConst.LR_DSR_10Gigabit_Ethernet_WAN+"")) { //8009
+                    dsrList.add(snc);
+                }
+                else if (rate.equals(DicConst.LR_DSR_OTU4_Ethernet_WAN+"")) { //8043
                     dsrList.add(snc);
                 }
 
-                else if (rate.equals(DicConst.LR_OCH_Data_Unit_1+"")) {
-                    dsrList.add(snc);
-                }
-
-                else if (rate.equals(DicConst.LR_OCH_Data_Unit_2+"")) {
-                    dsrList.add(snc);
-                }
-
-                else if (rate.equals(DicConst.LR_OCH_Data_Unit_3+"")) {
-                    dsrList.add(snc);
-                }
+//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_1+"")) {
+//                    dsrList.add(snc);
+//                }
+//
+//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_2+"")) {
+//                    dsrList.add(snc);
+//                }
+//
+//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_3+"")) {
+//                    dsrList.add(snc);
+//                }
                 else {
                     getLogger().error("unkonwn rate dsr : "+snc.getRate());
                 }
@@ -3108,12 +3140,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         cChannel.setNo(DNUtil.extractOCHno(acctp.getDn()));
         cChannel.setRate(acctp.getRate());
+        // 波道速率置空
         if (parent instanceof CSection)
             cChannel.setCategory("波道");
-        if (parent instanceof CPath)
-            cChannel.setCategory("子波道");
-        // 波道速率置空
-//        cChannel.setTmRate(SDHUtil.getTMRate(acctp.getRate()));
+        if (parent instanceof CPath) {
+        	cChannel.setCategory("子波道");
+        	cChannel.setTmRate(SDHUtil.getTMRate(acctp.getRate()));
+        }
         cChannel.setRateDesc(SDHUtil.rateDesc(acctp.getRate()));
 
         cChannel.setFrequencies(acctp.getFrequencies());
