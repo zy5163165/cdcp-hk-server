@@ -2636,6 +2636,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                        CSection oms = createOMS(ptpMap.get(snc.getaPtp()), ptpMap.get(snc.getzPtp()));
                        oms.setMemo(oms.getMemo() + "-sncOMS");
                        oms.setDn(snc.getDn());
+                       oms.setNativeEMSName(snc.getNativeEMSName());
+                       oms.setUserLabel(snc.getUserLabel());
                        omsList.add(oms);
                        
                        //ccAndSections
@@ -3286,8 +3288,11 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     }
     private boolean searchOCHRoute(List<R_TrafficTrunk_CC_Section> routes, HashSet<String> sncCCDnsHolder, HashSet<String> sncSectionDnsHolder) {
         HashSet<String> sectionPorts = new HashSet<String>();
+        boolean haveCC = false;
         for (R_TrafficTrunk_CC_Section route : routes) {
             if (route.getType().equals("CC")){
+            	haveCC = true;
+            	
                 String aptpDn = route.getaPtp();
                 String zptpDn = route.getzPtp();
                 CPTP aptp = ptpMap.get(aptpDn);
@@ -3319,8 +3324,11 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         for (R_TrafficTrunk_CC_Section route : routes) {
             if (route.getType().equals("SECTION")) {
-                if (sectionPorts.contains(route.getaEnd()) || sectionPorts.contains(route.getzEnd()))
-                    sncSectionDnsHolder.add(route.getCcOrSectionDn());
+                if (sectionPorts.contains(route.getaEnd()) || sectionPorts.contains(route.getzEnd())) {
+                	sncSectionDnsHolder.add(route.getCcOrSectionDn());
+                } else if (!haveCC) {
+                	sncSectionDnsHolder.add(route.getCcOrSectionDn());
+                }
             }
 
         }
