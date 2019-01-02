@@ -2642,6 +2642,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                        
                        //ccAndSections
                        List<R_TrafficTrunk_CC_Section> routes = routeMap.get(snc.getDn());
+                       if (!Detect.notEmpty(routes)) {
+                    	   getLogger().info("OMS no Routes = "+snc.getDn());
+                    	   continue;
+                       }
                        for (R_TrafficTrunk_CC_Section route : routes) {
                           if ("CC".equals(route.getType())) {
                         	  COMS_CC coms_section = new COMS_CC();
@@ -2932,7 +2936,18 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             }
 
             boolean b = searchOCHRoute(routes, sncCCDns, sncSectionDns);
-
+            if ("EMS:Huawei/U2000@MultiLayerSubnetwork:1@SubnetworkConnection:2018-05-14 02:37:50 - 16926 -wdm".equals(snc.getDn())) {
+            	getLogger().info("target och-sncSectionDns" + sncSectionDns.size());
+            	getLogger().info("target och-before cPath_sections" + cPath_sections.size());
+            	for (R_TrafficTrunk_CC_Section route : routes) {
+                    if (route.getType().equals("CC")){
+                    	getLogger().info("target och-CC" + route.getDn());
+                    }
+                    if (route.getType().equals("SECTION")) {
+                    	getLogger().info("target och-SECTION" + route.getDn());
+                    }
+            	}
+            }
 
             for (String ccDn : sncCCDns) {
                 cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, ccDn, cPath));
@@ -2944,6 +2959,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
             for (CChannel subwaveChannel : sncChannels) {
                 cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, subwaveChannel, cPath));
+            }
+            
+            if ("EMS:Huawei/U2000@MultiLayerSubnetwork:1@SubnetworkConnection:2018-05-14 02:37:50 - 16926 -wdm".equals(snc.getDn())) {
+            	getLogger().info("target och-after cPath_sections" + cPath_sections.size());
             }
 
 //            if (sncCCDns == null || sncCCDns.size() == 0)
