@@ -3055,7 +3055,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 if (s != null) subChannelRoutes.addAll(s);
             }
 
-            if (sncChannels.size() > 0) {
+//            if (sncChannels.size() > 0) {
                 for (R_TrafficTrunk_CC_Section route : routes) {
                     //这条路由不在子波的路由中
                     if (!subChannelRoutes.contains(route.getCcOrSectionDn())) {
@@ -3067,7 +3067,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                         }
                     }
                 }
-            }
+//            }
 
 //            else {  //找不到子波，当做OCH处理
 //                getLogger().error("无法找到子波:snc="+snc.getDn());
