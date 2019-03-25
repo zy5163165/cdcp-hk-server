@@ -2690,38 +2690,60 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 String zendTp = cSection.getZendTp();
                 List<CCTP> acctps = ptp_ctpMap.get(aendTp);
                 List<CCTP> zcctps = ptp_ctpMap.get(zendTp);
-                if (acctps == null || acctps.isEmpty() || zcctps == null) {
-                    getLogger().error("无法找到CTP，端口："+aendTp);
+                // 过滤AZ端CTP，筛除不为ochCTP的数据。
+                if (acctps != null) {
+            		Iterator<CCTP> iterator = acctps.iterator();
+            		while (iterator.hasNext()) {
+            			CCTP cctp = iterator.next();
+            			if (!StringUtils.contains(cctp.getDn(), "@CTP:/och=")) {
+            				iterator.remove();
+            			}
+            		}
+            		int size = Detect.notEmpty(acctps)?acctps.size():0;
+            		getLogger().info("过滤后ACTP.size=" + String.valueOf(size) + "，端口："+aendTp);
                 } else {
-                    for (CCTP acctp : acctps) {
+                	getLogger().info("无法找到ACTP，端口："+aendTp);
+                }
+                if (zcctps != null) {
+                	Iterator<CCTP> iterator = zcctps.iterator();
+            		while (iterator.hasNext()) {
+            			CCTP cctp = iterator.next();
+            			if (!StringUtils.contains(cctp.getDn(), "@CTP:/och=")) {
+            				iterator.remove();
+            			}
+            		}
+            		int size = Detect.notEmpty(zcctps)?zcctps.size():0;
+            		getLogger().info("过滤后ZCTP.size=" + String.valueOf(size) + "，端口："+zendTp);
+                } else {
+                	getLogger().info("无法找到ZCTP，端口："+zendTp);
+                }
+                
+                if (Detect.notEmpty(acctps) && Detect.notEmpty(zcctps)) {
+                	getLogger().info("过滤后两端有CTP，OMS："+cSection.getDn());
+                	for (CCTP acctp : acctps) {
                         for (CCTP zcctp : zcctps) {
-
                             String och = DNUtil.extractOCHno(acctp.getDn());
                             String och2 = DNUtil.extractOCHno(zcctp.getDn());
-
                             if (och != null && och.equals(och2)) {
-//
-//                                String asideCTP = MigrateUtil.getCrossCtp(acctp.getDn(), ptpCCMap.get(acctp.getPortdn()));
-//
-//                                String zsideCTP = MigrateUtil.getCrossCtp(zcctp.getDn(), ptpCCMap.get(zcctp.getPortdn()));
-//                           //     waveChannelList.add(createCChanell(cSection, acctp, zcctp));
-//                                if (asideCTP == null) {
-//                                    getLogger().error("无法找到OMS两端交叉到波道的ctp:"+acctp.getDn());
-//                                }
-//                                if (zsideCTP == null) {
-//                                    getLogger().error("无法找到OMS两端交叉到波道的ctp:"+zcctp.getDn());
-//                                }
-//                                String dd = "EMS:HZ-U2000-3-P@ManagedElement:4063255@PTP:/rack=1/shelf=3145753/slot=101/domain=wdm/port=14@CTP:/och=1";
-//                                if (asideCTP.equals(dd) || zsideCTP.equals(dd))
-//                                    System.out.println("debug = " + dd);
-//                                if (asideCTP != null && zsideCTP != null)
-//                                    waveChannelList.add(createCChanell(cSection, ctpMap.get(asideCTP), ctpMap.get(zsideCTP)));
                                 waveChannelList.add(createCChanell(cSection,acctp, zcctp));
-
                                 break;
                             }
                         }
                     }
+                } else if (Detect.notEmpty(acctps) && !Detect.notEmpty(zcctps)) {
+                	getLogger().error("过滤后无法找到ZCTP，端口："+zendTp);
+                	for (CCTP acctp : acctps) {
+                		CPTP ptp = ptpMap.get(zendTp);
+                		waveChannelList.add(createCChanellForPtp(cSection, acctp, ptp));
+                	}
+                } else if (!Detect.notEmpty(acctps) && Detect.notEmpty(zcctps)) {
+                	getLogger().error("过滤后无法找到ACTP，端口："+aendTp);
+                	for (CCTP zcctp : zcctps) {
+                		CPTP ptp = ptpMap.get(aendTp);
+                		waveChannelList.add(createCChanellForPtp(cSection, zcctp, ptp));
+                	}
+                } else {
+                	getLogger().error("过滤后无法找到AZ端CTP，OMS："+cSection.getDn());
                 }
             }
             omsList.clear();
@@ -3186,6 +3208,35 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         CPTP zptp = ptpMap.get(zcctp.getParentDn());
         if (aptp != null && zptp != null)
             cChannel.setTag3(aptp.getTag3()+"-"+zptp.getTag3());
+        cChannel.setEmsName(emsdn);
+        return cChannel;
+    }
+    private CChannel createCChanellForPtp(BObject parent,CCTP ctp, CPTP ptp) {
+        String aSideCtp = ctp.getDn();
+        String zSideCtp = ptp.getDn();
+        CChannel cChannel = new CChannel();
+        cChannel.setDn(aSideCtp + "<>" + zSideCtp);
+        cChannel.setSid(DatabaseUtil.nextSID(CChannel.class));
+        cChannel.setAend(aSideCtp);
+        cChannel.setZend(zSideCtp); 
+        cChannel.setSectionOrHigherOrderDn(parent.getDn());
+        cChannel.setName("och="+DNUtil.extractOCHno(ctp.getDn()));
+
+        cChannel.setNo(DNUtil.extractOCHno(ctp.getDn()));
+        cChannel.setRate(ctp.getRate());
+        // 波道速率置空
+        cChannel.setCategory("波道");
+        cChannel.setRateDesc(SDHUtil.rateDesc(ctp.getRate()));
+        cChannel.setFrequencies(ctp.getFrequencies());
+        cChannel.setWaveLen( HwDwdmUtil.getWaveLength( (ctp.getFrequencies())));
+
+        cChannel.setDirection(DicConst.CONNECTION_DIRECTION_CD_BI);
+        cChannel.setAptp(ctp.getParentDn());
+        cChannel.setZptp(ptp.getDn());
+
+        CPTP aptp = ptpMap.get(ctp.getParentDn());
+        if (aptp != null && ptp != null)
+            cChannel.setTag3(aptp.getTag3()+"-"+ptp.getTag3());
         cChannel.setEmsName(emsdn);
         return cChannel;
     }
