@@ -2090,7 +2090,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and (aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%')", CSection.class);
         DataInserter di = new DataInserter(emsid);
 //        List<Section> sections = sd.queryAll(Section.class);
-        List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%'");
+        List<Section> sections = sd.query("select c from Section c where (aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%')"
+        		+ " and (zEndTP like '%domain=sdh%' or zEndTP like '%domain=eth%')");
 
         if (sections != null && sections.size() > 0) {
             for (Section section : sections) {
@@ -2228,7 +2229,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and aEndTP like '%domain=wdm%'", CSection.class);
 		DataInserter di = new DataInserter(emsid);
 //		List<Section> sections = sd.queryAll(Section.class);
-		List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=wdm%'");
+		List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=wdm%' or zEndTP like '%domain=wdm%'");
 		if (sections != null && sections.size() > 0) {
 			for (Section section : sections) {
 				CSection csection = transOtnSection(section);
