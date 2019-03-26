@@ -1734,10 +1734,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     computationUnit.compute();
                     List<CChannel> lowOrderChannels = computationUnit.getChannels();
                     removeDuplicateDN(lowOrderChannels);
-                    if (lowOrderChannels == null || lowOrderChannels.isEmpty()) {
-                        getLogger().error("无法找到Route的Channel: route="+snc.getDn());
-                        continue;
-                    }
+//                    if (lowOrderChannels == null || lowOrderChannels.isEmpty()) {
+//                        getLogger().error("无法找到Route的Channel: route="+snc.getDn());
+//                        continue;
+//                    }
 
                     cRouteTable.addObject(new T_CRoute(cRoute));
                     cRoutes.add(cRoute);
