@@ -1353,10 +1353,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		// CCTP.class);
 
 //		List<CTP> ctps = sd.queryAll(CTP.class);
+		getLogger().info("insertOtnCtps query start... ");
 		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
+		getLogger().info("insertOtnCtps query end... ");
 		if (isEmptyResult(ctps))
 			return;
 
+		getLogger().info("insertOtnCtps query end... ctps.size= " + ctps.size());
 		String condition = " and dn like '%domain=wdm%' ";
 		executeTableDeleteByType("C_CTP", emsdn, condition);
 		getLogger().info("insertOtnCtps will start... emsid= " + emsid);
@@ -2087,7 +2090,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 	}
 
     protected void migrateSdhSection() throws Exception {
-        executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and (aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%')", CSection.class);
+        executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and (aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%')"
+        		+ " and (zEndTP like '%domain=sdh%' or zEndTP like '%domain=eth%')", CSection.class);
         DataInserter di = new DataInserter(emsid);
 //        List<Section> sections = sd.queryAll(Section.class);
         List<Section> sections = sd.query("select c from Section c where (aEndTP like '%domain=sdh%' or aEndTP like '%domain=eth%')"
@@ -2226,7 +2230,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     protected void migrateOtnSection() throws Exception {
 		if (!isTableHasData(Section.class))
 			return;
-		executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and aEndTP like '%domain=wdm%'", CSection.class);
+		executeDelete("delete  from CSection c where c.emsName = '" + emsdn + "' and (aEndTP like '%domain=wdm%' or zEndTP like '%domain=wdm%')", CSection.class);
 		DataInserter di = new DataInserter(emsid);
 //		List<Section> sections = sd.queryAll(Section.class);
 		List<Section> sections = sd.query("select c from Section c where aEndTP like '%domain=wdm%' or zEndTP like '%domain=wdm%'");
