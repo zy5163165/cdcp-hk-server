@@ -211,178 +211,183 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		}
 
 		getLogger().info("logical = " + migrateLogical);
-
-//		System.out.println("test start...");
-//		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
-//		System.out.println("ctps size=" + ctps.size());
-//		
-//        if (ctps != null && ctps.size() > 0) {
-//            HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
-//            for (CTP ctp : ctps) {
-//                DSUtil.putIntoValueList(portCtps,ctp.getPortdn(),ctp);
-//            }
-//            Set<String> ptpDns = portCtps.keySet();
-//            for (String ptpDn : ptpDns) {
-//                List<CTP> p_ctps = portCtps.get(ptpDn);
-//                processCtpsInSamePtp(p_ctps);
-//                for (CTP ctp : p_ctps) {
-//                    CCTP cctp = transOtnCTP(ctp);
-//                }
-//            }
-//        }
 		
 		// 0.通用实体入库
-		logAction(emsdn + " migrateManagedElement", "同步网元", 1);
-		System.out.println("同步网元");
-		migrateManagedElement();
+		try {
+			logAction(emsdn + " migrateManagedElement", "同步网元", 1);
+			System.out.println("同步网元");
+			migrateManagedElement();
 
-		logAction(emsdn + " migrateManagedElement", "同步子网", 3);
-		System.out.println("同步子网");
-		migrateSubnetwork();
+			logAction(emsdn + " migrateManagedElement", "同步子网", 3);
+			System.out.println("同步子网");
+			migrateSubnetwork();
 
-		logAction("migrateEquipmentHolder", "同步槽道", 5);
-		System.out.println("同步槽道");
-		migrateEquipmentHolder();
+			logAction("migrateEquipmentHolder", "同步槽道", 5);
+			System.out.println("同步槽道");
+			migrateEquipmentHolder();
 
-		logAction("migrateEquipment", "同步板卡", 10);
-		System.out.println("同步板卡");
-		migrateEquipment();
+			logAction("migrateEquipment", "同步板卡", 10);
+			System.out.println("同步板卡");
+			migrateEquipment();
 
-		logAction("migratePTP", "同步端口", 20);
-		System.out.println("同步端口");
-		migratePTP();
+			logAction("migratePTP", "同步端口", 20);
+			System.out.println("同步端口");
+			migratePTP();
+		} catch (Exception e) {
+            getLogger().error(e, e);
+        }
 		
 		// 1.SDH入库
-		getLogger().info("SDH入库 : Start...");
-		System.out.println("SDH入库 : Start...");
+		try {
+			getLogger().info("SDH入库 : Start...");
+			System.out.println("SDH入库 : Start...");
 
-		if (migrateLogical || isTableHasData(CTP.class)) {
-			logAction("migrateCTP", "同步CTP", 25);
-			System.out.println("同步CTP at : " + df.format(new Date()));
-			migrateSdhCTP();
-		}
+			if (migrateLogical || isTableHasData(CTP.class)) {
+				logAction("migrateCTP", "同步CTP", 25);
+				System.out.println("同步CTP at : " + df.format(new Date()));
+				migrateSdhCTP();
+			}
 
-		logAction("migrateSection", "同步段", 30);
-		System.out.println("同步段 at : " + df.format(new Date()));
-		migrateSdhSection();
+			logAction("migrateSection", "同步段", 30);
+			System.out.println("同步段 at : " + df.format(new Date()));
+			migrateSdhSection();
 
-		if (migrateLogical) {
-			logAction("migrateCC", "同步交叉", 30);
-			System.out.println("同步交叉");
-			migrateSdhCC();
+			if (migrateLogical) {
+				logAction("migrateCC", "同步交叉", 30);
+				System.out.println("同步交叉");
+				migrateSdhCC();
 
-			logAction("migrateProtectionSubnetwork", "同步传输系统", 32);
-			migrateProtectionSubnetwork();
+				logAction("migrateProtectionSubnetwork", "同步传输系统", 32);
+				migrateProtectionSubnetwork();
 
-			logAction("migrateSNC", "同步SNC", 35);
-			migrateSNC();
+				logAction("migrateSNC", "同步SNC", 35);
+				migrateSNC();
 
-			logAction("migrateVB", "同步VB", 40);
-			migrateVB();
+				logAction("migrateVB", "同步VB", 40);
+				migrateVB();
 
-			logAction("migrateEthBindingPath", "同步MSTP", 70);
-			migrateEthBindingPath();
-		}
+				logAction("migrateEthBindingPath", "同步MSTP", 70);
+				migrateEthBindingPath();
+			}
 
-		cSections.removeAll(cSections);
-		ctpTable.removeAll();
-		ccTable.removeAll();
-		cRouteTable.removeAll();
-		cChannelList.removeAll(cChannelList);
-		highOrderCtpChannelMap.clear();
-		lowOrderCtpChannelMap.clear();
-		cChannelList.clear();
-		vc4ChannelMap.clear();
+			cSections.removeAll(cSections);
+			ctpTable.removeAll();
+			ccTable.removeAll();
+			cRouteTable.removeAll();
+			cChannelList.removeAll(cChannelList);
+			highOrderCtpChannelMap.clear();
+			lowOrderCtpChannelMap.clear();
+			cChannelList.clear();
+			vc4ChannelMap.clear();
+			
+			cSections = null;
+			ctpTable = null;
+			ccTable = null;
+			cRouteTable = null;
+			cChannelList = null;
+			highOrderCtpChannelMap = null;
+			lowOrderCtpChannelMap = null;
+			vc4ChannelMap = null;
 
-		getLogger().info("SDH入库 : End...");
-		System.out.println("SDH入库 : End...");
-
+			getLogger().info("SDH入库 : End...");
+			System.out.println("SDH入库 : End...");
+		} catch (Exception e) {
+            getLogger().error(e, e);
+        }
+		
 		// 2.OTN入库
-		getLogger().info("OTN入库 : Start...");
-		System.out.println("OTN入库 : Start...");
+		try {
+			getLogger().info("OTN入库 : Start...");
+			System.out.println("OTN入库 : Start...");
 
-		logAction("migrateSection", "同步段", 25);
-		System.out.println("同步段");
-		migrateOtnSection();
+			logAction("migrateSection", "同步段", 25);
+			System.out.println("同步段");
+			migrateOtnSection();
 
-		if (migrateLogical) {
-			logAction("migrateCTP", "同步CTP", 30);
-			System.out.println("同步CTP");
-			migrateOtnCTP();
+			if (migrateLogical) {
+				logAction("migrateCTP", "同步CTP", 30);
+				System.out.println("同步CTP");
+				migrateOtnCTP();
 
-			logAction("migrateCC", "同步交叉", 30);
-			System.out.println("同步交叉");
-			migrateOtnCC();
+				logAction("migrateCC", "同步交叉", 30);
+				System.out.println("同步交叉");
+				migrateOtnCC();
 
-			logAction("migrateOMS", "同步逻辑资源", 60);
-			System.out.println("同步逻辑资源");
-			migrateOMS();
+				logAction("migrateOMS", "同步逻辑资源", 60);
+				System.out.println("同步逻辑资源");
+				migrateOMS();
 
-		}
+			}
 
-		cSections.removeAll(cSections);
-		ctpParentChildMap.clear();
-		ptpMap.clear();
-		cardPtpMap.clear();
-		ctpMap.clear();
-		aptpCCMap.clear();
-		ptpCCMap.clear();
-		ptpSectionMap.clear();
-		ptp_ctpMap.clear();
+			cSections.removeAll(cSections);
+			ctpParentChildMap.clear();
+			ptpMap.clear();
+			cardPtpMap.clear();
+			ctpMap.clear();
+			aptpCCMap.clear();
+			ptpCCMap.clear();
+			ptpSectionMap.clear();
+			ptp_ctpMap.clear();
+			
+			cSections = null;
+			ctpParentChildMap = null;
+			ptpMap = null;
+			cardPtpMap = null;
+			ctpMap = null;
+			aptpCCMap = null;
+			ptpCCMap = null;
+			ptpSectionMap = null;
+			ptp_ctpMap = null;
 
-		getLogger().info("OTN入库 : End...");
-		System.out.println("OTN入库 : End...");
+			getLogger().info("OTN入库 : End...");
+			System.out.println("OTN入库 : End...");
+		} catch (Exception e) {
+            getLogger().error(e, e);
+        }
 
 		// 3.PTN入库
-		getLogger().info("PTN入库 : Start...");
-		System.out.println("PTN入库 : Start...");
+		try {
+			getLogger().info("PTN入库 : Start...");
+			System.out.println("PTN入库 : Start...");
 
-		logAction("migrateSection", "同步段", 25);
-		System.out.println("同步段");
-		migratePtnSection();
+			logAction("migrateSection", "同步段", 25);
+			System.out.println("同步段");
+			migratePtnSection();
 
-		if (migrateLogical && !isTableHasData(FlowDomainFragment.class) && !isTableHasData(CrossConnect.class)) {
-			migrateLogical = false;
-			getLogger().info("migratelogical = false ,becase fdfr and cc is null");
-		}
-		if (migrateLogical) {
-			// PTN没有CTP、交叉、以及HW_MSTPBindingPath
-//			logAction("migrateMPCTP", "同步MPCTP", 35);
-//			System.out.println("同步MPCTP");
-//			migrateMPCTP();
-//			
-//			logAction("migrateCTP", "同步CTP", 30);
-//			System.out.println("同步CTP");
-//			migratePtnCTP();
-//			
-//			logAction("migrateCC", "同步交叉", 30);
-//			System.out.println("同步交叉");
-//			migratePtnCC();
-			
-			logAction("migrateFTPPTP", "同步逻辑端口", 35);
-			System.out.println("同步逻辑端口");
-			migrateFTPPTP();
-			
-			logAction("migrateFlowDomainFragment", "同步业务", 40);
-			System.out.println("同步业务");
-			migrateFlowDomainFragment();
+			if (migrateLogical && !isTableHasData(FlowDomainFragment.class) && !isTableHasData(CrossConnect.class)) {
+				migrateLogical = false;
+				getLogger().info("migratelogical = false ,becase fdfr and cc is null");
+			}
+			if (migrateLogical) {
+				// PTN没有CTP、交叉、以及HW_MSTPBindingPath
+				logAction("migrateFTPPTP", "同步逻辑端口", 35);
+				System.out.println("同步逻辑端口");
+				migrateFTPPTP();
+				
+				logAction("migrateFlowDomainFragment", "同步业务", 40);
+				System.out.println("同步业务");
+				migrateFlowDomainFragment();
 
-			logAction("migrateRoute", "同步路由", 70);
-			System.out.println("同步路由");
-			migrateIPRoute();
+				logAction("migrateRoute", "同步路由", 70);
+				System.out.println("同步路由");
+				migrateIPRoute();
 
-			logAction("migrateProtectGroup", "同步保护组", 85);
-			System.out.println("同步保护组");
-			migrateProtectGroup();
-			
-			logAction("migrateProtectingPWTunnel", "同步保护组2", 95);
-			System.out.println("同步保护组2");
-			migrateProtectingPWTunnel();
-			
-		}
+				logAction("migrateProtectGroup", "同步保护组", 85);
+				System.out.println("同步保护组");
+				migrateProtectGroup();
+				
+				logAction("migrateProtectingPWTunnel", "同步保护组2", 95);
+				System.out.println("同步保护组2");
+				migrateProtectingPWTunnel();
+				
+			}
 
-		getLogger().info("PTN入库 : End...");
-		System.out.println("PTN入库 : End...");
+			getLogger().info("PTN入库 : End...");
+			System.out.println("PTN入库 : End...");
+		} catch (Exception e) {
+            getLogger().error(e, e);
+        }
+		
 
 		System.out.println("Migrate End at : " + df.format(new Date()));// new Date()为获取当前系统时间
 		getLogger().info("Migrate End at : " + df.format(new Date()));
@@ -959,10 +964,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 	}
 
 	protected void migrateSdhCTP() throws Exception {
-		// executeDelete("delete from CCTP c where c.emsName = '" + emsdn + "'",
-		// CCTP.class);
-		
-//		List<CTP> ctps = sd.queryAll(CTP.class);
 		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=sdh%'");
 		if (!Detect.notEmpty(ctps)) {
 			getLogger().info("migrateSdhCtp.size is null!");
@@ -974,60 +975,33 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		getLogger().info("migrateSdhCtp delete...");
 		executeTableDeleteByType("C_CTP", emsdn, condition);
 		
-//		List<CrossConnect> crossConnects = sd.query("select c from CrossConnect c where dn like '%domain=sdh%'");
-//		System.out.println("migrateSdhCtp.crossConnects is " + crossConnects.size());
-//		processCTP(ctps, crossConnects);
-		
 		getLogger().info("migrateSdhCtp insert...");
 		insertSdhCtps(ctps);
 		getLogger().info("migrateSdhCtp ctps.size = " + (Detect.notEmpty(ctps)?ctps.size():0));
-		
-//		Iterator<CCTP> iterator = list.iterator();
-//		while (iterator.hasNext()) {
-//			CCTP cctp = iterator.next();
-//			ctpTable.addObject(new T_CTP(cctp));
-//			iterator.remove();
-//		}
-//		getLogger().info("migrateSdhCtp list.size = " + (Detect.notEmpty(list)?list.size():0));
-		
-//		for (CCTP cctp : list) {
-//			ctpTable.addObject(new T_CTP(cctp));
-//		}
 
 	}
 	
 	protected void insertSdhCtps(List<CTP> ctps) throws Exception {
 		DataInserter di = new DataInserter(emsid);
 		getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
-//		List<CCTP> cctps = new ArrayList<CCTP>();
+
 		if (ctps != null && ctps.size() > 0) {
-			
 			for (CTP ctp : ctps) {
-				CCTP cctp = transCTP(ctp);
-				if (cctp != null) {
-					di.insert(cctp);
-					ctpTable.addObject(new T_CTP(cctp));
+				try {
+					CCTP cctp = transCTP(ctp);
+					if (cctp != null) {
+						di.insert(cctp);
+						ctpTable.addObject(new T_CTP(cctp));
+					}
+				} catch (Exception e) {
+					getLogger().error(e, e);
 				}
 			}
 			ctps.clear();
-			
-//			Iterator<CTP> iterator = ctps.iterator();
-//			while (iterator.hasNext()) {
-//				CTP ctp = iterator.next();
-//				
-//				CCTP cctp = transCTP(ctp);
-//				if (cctp != null) {
-////					cctps.add(cctp);
-//					di.insert(cctp);
-//					ctpTable.addObject(new T_CTP(cctp));
-//				}
-//				
-//				iterator.remove();
-//			}
+			ctps = null;
 		}
 
 		di.end();
-//        return cctps;
 	}
 	
     protected void migrateCTPbak() throws Exception {
@@ -1349,31 +1323,43 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     }
     
 	protected void migrateOtnCTP() throws Exception {
-		// executeDelete("delete from CCTP c where c.emsName = '" + emsdn + "'",
-		// CCTP.class);
-
-//		List<CTP> ctps = sd.queryAll(CTP.class);
+		
+		long total = Runtime.getRuntime().totalMemory() / 1000000l;
+        long free = Runtime.getRuntime().freeMemory() / 1000000l;
+        long max = Runtime.getRuntime().maxMemory() / 1000000l;
+        getLogger().info("Total Memory = " + total + "M;" + " Free Memory = " + free + "M; Max Memory = " + max + "M");
+		
 		getLogger().info("insertOtnCtps query start... ");
 		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
 		getLogger().info("insertOtnCtps query end... ");
 		if (isEmptyResult(ctps))
 			return;
 
-		getLogger().info("insertOtnCtps query end... ctps.size= " + ctps.size());
-		String condition = " and dn like '%domain=wdm%' ";
-		executeTableDeleteByType("C_CTP", emsdn, condition);
-		getLogger().info("insertOtnCtps will start... emsid= " + emsid);
+		total = Runtime.getRuntime().totalMemory() / 1000000l;
+        free = Runtime.getRuntime().freeMemory() / 1000000l;
+        max = Runtime.getRuntime().maxMemory() / 1000000l;
+        getLogger().info("Total Memory = " + total + "M;" + " Free Memory = " + free + "M; Max Memory = " + max + "M");
 		
-//		List<CrossConnect> crossConnects = sd.query("select c from CrossConnect c where dn like '%domain=wdm%'");
-//		System.out.println("migrateOtnCtp.crossConnects is " + crossConnects.size());
-//		processCTP(ctps, crossConnects);
+        
+        try {
+        	getLogger().info("insertOtnCtps query end... ctps.size= " + ctps.size());
+    		String condition = " and dn like '%domain=wdm%' ";
+    		executeTableDeleteByType("C_CTP", emsdn, condition);
+    		getLogger().info("insertOtnCtps will start... emsid= " + emsid);
+        } catch ( Exception e) {
+            getLogger().error(e, e);
+        }
+		
+		total = Runtime.getRuntime().totalMemory() / 1000000l;
+        free = Runtime.getRuntime().freeMemory() / 1000000l;
+        max = Runtime.getRuntime().maxMemory() / 1000000l;
+        getLogger().info("Total Memory = " + total + "M;" + " Free Memory = " + free + "M; Max Memory = " + max + "M");
 		
 		insertOtnCtps(ctps);
 	}
 	protected void insertOtnCtps(List<CTP> ctps) throws Exception {
         DataInserter di = new DataInserter(emsid);
         getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
-//        List<CCTP> cctps = new ArrayList<CCTP>();
         if (ctps != null && ctps.size() > 0) {
 
             HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
@@ -1381,6 +1367,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 DSUtil.putIntoValueList(portCtps,ctp.getPortdn(),ctp);
             }
             ctps.clear();
+            ctps = null;
 
             Set<String> ptpDns = portCtps.keySet();
 
@@ -1394,16 +1381,21 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                  */
 //                processCtpsInSamePtp(p_ctps);
                 for (CTP ctp : p_ctps) {
-                    CCTP cctp = transOtnCTP(ctp);
-                    if (cctp != null) {
-//                        cctps.add(cctp);
-                        DSUtil.putIntoValueList(ptp_ctpMap, cctp.getParentDn(), cctp);
-                        ctpMap.put(cctp.getDn(),cctp);
-                        di.insert(cctp);
+                	try {
+                		CCTP cctp = transOtnCTP(ctp);
+                        if (cctp != null) {
+//                            cctps.add(cctp);
+                            DSUtil.putIntoValueList(ptp_ctpMap, cctp.getParentDn(), cctp);
+                            ctpMap.put(cctp.getDn(),cctp);
+                            di.insert(cctp);
+                        }
+                	} catch ( Exception e) {
+                        getLogger().error(e, e);
                     }
                 }
             }
             portCtps.clear();
+            portCtps = null;
         }
 
         di.end();
