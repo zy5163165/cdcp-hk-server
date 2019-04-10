@@ -141,6 +141,11 @@ public class DicConst {
 	public static final int LR_OCH_Data_Unit_3e1 = 1605;
 	public static final int LR_OCH_Transport_Unit_3e1 = 1606;
 	public static final int LR_OCH_Transport_Unit_OPTS = 1607;
+	
+	public static final int LR_OCH_Data_Unit_4 = 8041; // hw extend ODU4
+	public static final int LR_OCH_Transport_Unit_4 = 8042; // hw extend OTU4
+	public static final int LR_OCH_Data_Unit_5G = 8006; // hw extend ODU5G
+	public static final int LR_OCH_Transport_Unit_5G = 8007; // hw extend OTU5G
 
 	public static final int LR_DSR_10Gigabit_Ethernet_LAN = 8008; // hw extend
 	public static final int LR_DSR_10Gigabit_Ethernet_WAN = 8009; // hw extend

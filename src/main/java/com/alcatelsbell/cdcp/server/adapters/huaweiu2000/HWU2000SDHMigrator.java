@@ -154,6 +154,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     private List<CChannel> cChannelList =  new ArrayList<CChannel>();
 
     private List<CSection> cSections = new ArrayList<CSection>();
+    HashMap<String,CSection> sdhSectionMap = new HashMap<String, CSection>();
     private HashMap<String,List<CChannel>> vc4ChannelMap = new HashMap<String, List<CChannel>>();
 
     // OTN的全局变量
@@ -166,7 +167,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     HashMap<String,List<CCrossConnect>> ptpCCMap = new HashMap<String, List<CCrossConnect>>();
     HashMap<String,List<CSection>> ptpSectionMap = new HashMap<String, List<CSection>>();
     HashMap<String,List<CCTP>> ptp_ctpMap = new HashMap<String, List<CCTP>>();
-//    List<CSection> cSections = new ArrayList<CSection>();
     
     // PTN的全局变量
     private HashMap<String,Integer> pwDnMap = new HashMap<String, Integer>();
@@ -318,6 +318,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
 			}
 
+			sdhSectionMap.clear();
 			cSections.removeAll(cSections);
 			ctpParentChildMap.clear();
 			ptpMap.clear();
@@ -2104,6 +2105,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 di.insert(csection);
 
                 cSections.add(csection);
+                sdhSectionMap.put(csection.getDn(), csection);
                 //sectionTable.addObject(section);
             }
             sections.clear();
@@ -2762,7 +2764,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         HashMap<String,List<String>> subwave_routes = new HashMap<String, List<String>>();
 
         List<CChannel> subWaveChannelList = new ArrayList<CChannel>();
-//        List<SubnetworkConnection> sncs = sd.queryAll(SubnetworkConnection.class);
         
         List<CPath> cPaths = new ArrayList<CPath>();
         List<CRoute> cRoutes = new ArrayList<CRoute>();
@@ -2776,19 +2777,17 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         List<SubnetworkConnection> ochList = new ArrayList<SubnetworkConnection>();
         List<SubnetworkConnection> dsrList = new ArrayList<SubnetworkConnection>();
+        getLogger().info("sdhSectionMap size=" + sdhSectionMap.size());
         for (SubnetworkConnection snc : sncs) {
              checkSuspend();
 
             String rate = snc.getRate();
 
             if (rate != null) {
-                if (rate.equals(HWDic.LR_Optical_Channel.value+"")) {
-//                    if (checkEndContainsSubCtp(snc.getaEnd()) || checkEndContainsSubCtp(snc.getzEnd())) {
+                if (rate.equals(HWDic.LR_Optical_Channel.value+"")) { //40
                         ochList.add(snc);
-//                    }
-//                    else dsrList.add(snc);
-
                 }
+                
                 // DSR入库逻辑变更
                 else if (rate.equals(HWDic.LR_DSR_OC3_STM1.value+"")) { //73
                     dsrList.add(snc);
@@ -2829,18 +2828,12 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 else if (rate.equals(DicConst.LR_DSR_OTU4_Ethernet_WAN+"")) { //8043
                     dsrList.add(snc);
                 }
-
-//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_1+"")) {
-//                    dsrList.add(snc);
-//                }
-//
-//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_2+"")) {
-//                    dsrList.add(snc);
-//                }
-//
-//                else if (rate.equals(DicConst.LR_OCH_Data_Unit_3+"")) {
-//                    dsrList.add(snc);
-//                }
+                // ODU转换DSR
+                else if (isOdu2Dsr(snc, sdhSectionMap)) {
+                	getLogger().info("Odu2Dsr: " + snc.getRate());
+                    dsrList.add(snc);
+                }
+                
                 else {
                     getLogger().error("unkonwn rate dsr : "+snc.getRate());
                 }
@@ -3147,6 +3140,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         di.end();
     
     }
+    
+    private boolean isOdu2Dsr(SubnetworkConnection snc, HashMap<String,CSection> sdhSectionMap) {
+    	String rate = snc.getRate();
+    	// odu/otu rate
+    	if (rate.equals(DicConst.LR_OCH_Transport_Unit_1+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_2+"")|| rate.equals(DicConst.LR_OCH_Transport_Unit_3+"")
+    			|| rate.equals(DicConst.LR_OCH_Data_Unit_1+"") || rate.equals(DicConst.LR_OCH_Data_Unit_2+"")|| rate.equals(DicConst.LR_OCH_Data_Unit_3+"")
+    			|| rate.equals(DicConst.LR_OCH_Data_Unit_4+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_4+"")
+    			|| rate.equals(DicConst.LR_OCH_Data_Unit_5G+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_5G+"")) {
+    		CSection sdhSection = sdhSectionMap.get(snc.getDn());
+    		if (sdhSection != null)	{
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
     private CSection createOMS( CPTP aptp, CPTP zptp) throws Exception {
         CSection section = new CSection();
         section.setType("OMS");
