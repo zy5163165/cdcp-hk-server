@@ -2105,7 +2105,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 di.insert(csection);
 
                 cSections.add(csection);
-                sdhSectionMap.put(csection.getDn(), csection);
+                sdhSectionMap.put(csection.getNativeEMSName(), csection);
                 //sectionTable.addObject(section);
             }
             sections.clear();
@@ -3148,7 +3148,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     			|| rate.equals(DicConst.LR_OCH_Data_Unit_1+"") || rate.equals(DicConst.LR_OCH_Data_Unit_2+"")|| rate.equals(DicConst.LR_OCH_Data_Unit_3+"")
     			|| rate.equals(DicConst.LR_OCH_Data_Unit_4+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_4+"")
     			|| rate.equals(DicConst.LR_OCH_Data_Unit_5G+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_5G+"")) {
-    		CSection sdhSection = sdhSectionMap.get(snc.getDn());
+    		CSection sdhSection = sdhSectionMap.get(snc.getNativeEMSName());
     		if (sdhSection != null)	{
     			return true;
     		}
