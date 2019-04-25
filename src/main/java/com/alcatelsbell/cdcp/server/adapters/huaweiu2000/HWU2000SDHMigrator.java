@@ -1534,10 +1534,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             for (SubnetworkConnection snc : sncs) {
                 if ((HWDic.LR_E1_2M.value+"").equals(snc.getRate())) {
                     sdhRoutes.add(snc);
-                }  else if ((HWDic.LR_STS3c_and_AU4_VC4.value+"").equals(snc.getRate())
-                        ) {
+                }  else if ((HWDic.LR_STS3c_and_AU4_VC4.value+"").equals(snc.getRate())) {
                     paths.add(snc);
-                }  else if ((HWDic.LR_E3_34M.value+"").equals(snc.getRate())) {
+                }  else if ((HWDic.LR_E3_34M.value+"").equals(snc.getRate())
+                		|| (HWDic.LR_T3_and_DS3_45M.value+"").equals(snc.getRate())) {
                     sdhRoutes.add(snc);
                 }  else if ((HWDic.LR_E4_140M.value+"").equals(snc.getRate())
                         || (HWDic.LR_STS12c_and_VC4_4c.value+"").equals(snc.getRate())
@@ -1565,7 +1565,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                         e4Routes.add(snc);
                     }
                     else
-                        sdhRoutes.add(snc);
+                    	e4Routes.add(snc);
                 } else {
                     getLogger().error("Unknown rate : "+snc.getRate()+"; snc="+snc.getDn());
                 }
@@ -1603,7 +1603,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     List<R_TrafficTrunk_CC_Section> routes = snc_cc_section_map.get(snc.getDn());
                     if (routes == null) {
                         noRoutePath ++;
-                     //   getLogger().error("无法找到path路由: path="+snc.getDn());
                         continue;
                     }
                     SDHRouteComputationUnit computationUnit = new SDHRouteComputationUnit(getLogger(),snc,routes,ctpTable,ccTable,emsdn,true,null);
@@ -1612,16 +1611,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     ctpDnHighoderpathDn.putAll(computationUnit.getCtpDnHighoderpathDn());
                     List<CChannel> channels = computationUnit.getChannels();
 
-              //      removeDuplicateDN(channels);
                     for (CChannel channel : channels) {
-                  //      cChannels.add(channel);
                         cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
                     }
 
                     cPath_ChannelMap.put(cPath.getDn(),channels);
                     for (R_TrafficTrunk_CC_Section route : routes) {
                         if (route.getType().equals("CC")) {
-                           // cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, route.getCcOrSectionDn(), cPath));
                             Collection<? extends String> ccs = splitCCdns(route.getCcOrSectionDn());
                             for (String cc : ccs) {
                                 cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, cc, cPath));
@@ -1646,7 +1642,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     List<R_TrafficTrunk_CC_Section> routes = snc_cc_section_map.get(snc.getDn());
                     if (routes == null) {
                         noRoutePath ++;
-                        //   getLogger().error("无法找到path路由: path="+snc.getDn());
                         continue;
                     }
                     SDHRouteComputationUnit computationUnit = new SDHRouteComputationUnit(getLogger(),snc,routes,ctpTable,ccTable,emsdn,true,null);
@@ -1655,16 +1650,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     ctpDnHighoderpathDn.putAll(computationUnit.getCtpDnHighoderpathDn());
                     List<CChannel> channels = computationUnit.getChannels();
 
-                    //      removeDuplicateDN(channels);
                     for (CChannel channel : channels) {
-                        //      cChannels.add(channel);
                         cRoute_channels.add(U2000MigratorUtil.createCRoute_Channel(emsdn, channel, cRoute));
                     }
 
 
                     for (R_TrafficTrunk_CC_Section route : routes) {
                         if (route.getType().equals("CC")) {
-                            // cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, route.getCcOrSectionDn(), cPath));
                             Collection<? extends String> ccs = splitCCdns(route.getCcOrSectionDn());
                             for (String cc : ccs) {
                                 cRoute_ccs.add(U2000MigratorUtil.createCRoute_CC(emsdn, cc, cRoute));
@@ -1679,48 +1671,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             getLogger().error("无法找到E4路由: size="+ noRoutePath);
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-//            List<CTransmissionSystem_Channel>   ts_channels = new ArrayList<CTransmissionSystem_Channel>();
-//            List<ProtectionSubnetworkLink> protectionSubnetworkLinks = sd.queryAll(ProtectionSubnetworkLink.class);
-//            for (ProtectionSubnetworkLink link : protectionSubnetworkLinks) {
-//
-//                for (CPath cpath : cpaths) {
-//
-//                    HashSet aptps = new HashSet();
-//                    HashSet zptps = new HashSet();
-//                    if (cpath.getAptp() != null) {
-//                        aptps.add(cpath.getAptp());
-//                    } else if (cpath.getAptps() != null) {
-//                        aptps.addAll(Arrays.asList(cpath.getAptps().split(Constant.listSplitReg)));
-//                    }
-//
-//                    if (cpath.getZptp() != null) {
-//                        zptps.add(cpath.getZptp());
-//                    } else if (cpath.getZptps() != null) {
-//                        zptps.addAll(Arrays.asList(cpath.getZptps().split(Constant.listSplitReg)));
-//                    }
-//                    if ((aptps.contains(link.getSrcTp()) &&
-//                            zptps.contains(link.getSinkTp()) ) ||
-//                            (aptps.contains(link.getSinkTp()) &&
-//                                    zptps.contains(link.getSrcTp()))) {
-//                        List<CChannel> cChannels = cPath_ChannelMap.get(cpath.getDn());
-//                        if (cChannels != null) {
-//                            for (CChannel cChannel : cChannels) {
-//                                CTransmissionSystem_Channel sc = new CTransmissionSystem_Channel();
-//                                sc.setTransmissionSystemDn(link.getProtectionSubnetworkDn());
-//                                sc.setChannelDn(cChannel.getDn());
-//                                sc.setEmsName(emsdn);
-//                                sc.setDn(SysUtil.nextDN());
-//                                ts_channels.add(sc);
-//                            }
-//                        }
-//
-//                    }
-//                }
-//
-//            }
-
-
             for (SubnetworkConnection snc : sdhRoutes) {
                 try {
                     makeupCTP("route",snc.getaEnd().split(Constant.listSplitReg),snc.getzEnd().split(Constant.listSplitReg),diForCTP);
@@ -1728,11 +1678,9 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     CRoute cRoute = U2000MigratorUtil.transRoute(emsdn,snc);
                     cRoute.setTag1(MigrateUtil.transMapValue(snc.getAdditionalInfo()).get("Customer"));
 
-
                     List<R_TrafficTrunk_CC_Section> routes = snc_cc_section_map.get(snc.getDn());
                     if (routes == null) {
                         noRouteRoute ++;
-                  //      getLogger().error("无法找到route路由: route="+snc.getDn());
                         continue;
                     }
                     SDHRouteComputationUnit computationUnit = new SDHRouteComputationUnit(getLogger(),snc,routes,ctpTable,ccTable,emsdn,false,cpathMap);
@@ -1741,10 +1689,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     computationUnit.compute();
                     List<CChannel> lowOrderChannels = computationUnit.getChannels();
                     removeDuplicateDN(lowOrderChannels);
-//                    if (lowOrderChannels == null || lowOrderChannels.isEmpty()) {
-//                        getLogger().error("无法找到Route的Channel: route="+snc.getDn());
-//                        continue;
-//                    }
 
                     cRouteTable.addObject(new T_CRoute(cRoute));
                     cRoutes.add(cRoute);
@@ -1754,7 +1698,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     }
                     for (R_TrafficTrunk_CC_Section route : routes) {
                         if (route.getType().equals("CC")) {
-                         //   cRoute_ccs.add(U2000MigratorUtil.createCRoute_CC(emsdn, route.getCcOrSectionDn(), cRoute));
                             Collection<? extends String> ccs = splitCCdns(route.getCcOrSectionDn());
                             for (String cc : ccs) {
                                 cRoute_ccs.add(U2000MigratorUtil.createCRoute_CC(emsdn, cc, cRoute));
