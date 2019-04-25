@@ -173,6 +173,12 @@ public class SDHUtil {
     public static String getTMRate (int rate) {
         if (HWDic.LR_STS3c_and_AU4_VC4.value == rate) {
             return "155M";
+        } else if (HWDic.LR_STS12c_and_VC4_4c.value == rate) {
+            return "655M";
+        } else if (HWDic.LR_STS48c_and_VC4_16c.value == rate) {
+            return "2.5G";
+        } else if (HWDic.LR_STS192c_and_VC4_64c.value == rate) {
+            return "10G";
         }
 
         else if (HWDic.LR_Low_Order_TU3_VC3.value == rate) {

@@ -136,14 +136,14 @@ public class SDHRouteComputationUnit {
                     }
 
                 }
-//                if (zend != null) {
-//                    String[] zctps = zend.split(Constant.listSplitReg);
-//                    for (String zctp : zctps) {
-//                        CChannel cChannel = ctpChannelMap.get(zctp);
-//                        if (cChannel != null)
-//                            channelMap.put(cChannel.getDn(),cChannel);
-//                    }
-//                }
+                if (zend != null) {
+                    String[] zctps = zend.split(Constant.listSplitReg);
+                    for (String zctp : zctps) {
+                        CChannel cChannel = actpChannelMap.get(zctp);
+                        if (cChannel != null)
+                            channelMap.put(cChannel.getDn(),cChannel);
+                    }
+                }
 
             }
         }

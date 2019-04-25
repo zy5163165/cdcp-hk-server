@@ -40,7 +40,6 @@ import org.asb.mule.probe.framework.entity.SubnetworkConnection;
 import org.asb.mule.probe.framework.entity.TrafficTrunk;
 import org.asb.mule.probe.framework.service.Constant;
 import org.asb.mule.probe.framework.util.FileLogger;
-import org.asb.mule.probe.ptn.u2000V16.nbi.job.CTPUtil;
 import org.hibernate.ejb.HibernateEntityManager;
 import org.hibernate.jdbc.Work;
 import org.springframework.context.ApplicationContext;
@@ -89,6 +88,7 @@ import com.alcatelsbell.cdcp.nbi.model.CVirtualBridge;
 import com.alcatelsbell.cdcp.nbi.model.CdcpObject;
 import com.alcatelsbell.cdcp.nbi.ws.irmclient.IrmsClientUtil;
 import com.alcatelsbell.cdcp.server.adapters.AbstractDBFLoader;
+import com.alcatelsbell.cdcp.server.adapters.CTPUtil;
 import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CCrossConnect;
 import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CRoute;
 import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CTP;
@@ -1267,8 +1267,12 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		newCTP.setTag1("NEW-CC");
 		newCTP.setPortdn(portDn);
 		newCTP.setParentDn(portDn);
-		if (CTPUtil.isVC44C(dn))
+		if (CTPUtil.isVC4_4C(dn))
 			newCTP.setNativeEMSName("VC4_4c-" + CTPUtil.getJ(dn));
+		else if (CTPUtil.isVC4_16C(dn))
+			newCTP.setNativeEMSName("VC4_16c-" + CTPUtil.getJ(dn));
+		else if (CTPUtil.isVC4_64C(dn))
+			newCTP.setNativeEMSName("VC4_64c-" + CTPUtil.getJ(dn));
 		else if (CTPUtil.isVC4(dn))
 			newCTP.setNativeEMSName("VC4-" + CTPUtil.getJ(dn));
 		else if (CTPUtil.isVC12(dn))
@@ -1300,8 +1304,17 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             if (dn.contains("vc3")) {
                 ctp.setRate("13");
             }
-            if (CTPUtil.isVC4(dn)) {
+            if (CTPUtil.isVC4Only(dn)) {
                 ctp.setRate("15");
+            }
+            if (CTPUtil.isVC4_4C(dn)) {
+                ctp.setRate("16");
+            }
+            if (CTPUtil.isVC4_16C(dn)) {
+                ctp.setRate("17");
+            }
+            if (CTPUtil.isVC4_64C(dn)) {
+                ctp.setRate("18");
             }
             ctp.setDirection("D_BIDIRECTIONAL");
 
@@ -2141,11 +2154,41 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 continue;
             }
             for (T_CTP actp : actps) {
-                if (CTPUtil.isVC4(actp.getDn())) {
+                if (CTPUtil.isVC4Only(actp.getDn())) {
                     int j = CTPUtil.getJ(actp.getDn());
 
                     for (T_CTP zctp : zctps) {
-                        if (CTPUtil.isVC4(zctp.getDn()) && (CTPUtil.getJ(zctp.getDn()) == j)) {
+                        if (CTPUtil.isVC4Only(zctp.getDn()) && (CTPUtil.getJ(zctp.getDn()) == j)) {
+                             createCChannel(actp,zctp,section);
+                        }
+                    }
+                }
+                
+                if (CTPUtil.isVC4_4C(actp.getDn())) {
+                    int j = CTPUtil.getJ(actp.getDn());
+
+                    for (T_CTP zctp : zctps) {
+                        if (CTPUtil.isVC4_4C(zctp.getDn()) && (CTPUtil.getJ(zctp.getDn()) == j)) {
+                             createCChannel(actp,zctp,section);
+                        }
+                    }
+                }
+                
+                if (CTPUtil.isVC4_16C(actp.getDn())) {
+                    int j = CTPUtil.getJ(actp.getDn());
+
+                    for (T_CTP zctp : zctps) {
+                        if (CTPUtil.isVC4_16C(zctp.getDn()) && (CTPUtil.getJ(zctp.getDn()) == j)) {
+                             createCChannel(actp,zctp,section);
+                        }
+                    }
+                }
+                
+                if (CTPUtil.isVC4_64C(actp.getDn())) {
+                    int j = CTPUtil.getJ(actp.getDn());
+
+                    for (T_CTP zctp : zctps) {
+                        if (CTPUtil.isVC4_64C(zctp.getDn()) && (CTPUtil.getJ(zctp.getDn()) == j)) {
                              createCChannel(actp,zctp,section);
                         }
                     }
@@ -2830,7 +2873,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 }
                 // ODU转换DSR
                 else if (isOdu2Dsr(snc, sdhSectionMap)) {
-                	getLogger().info("Odu2Dsr: " + snc.getRate());
+                	getLogger().info("Odu2Dsr: " + snc.getDn());
                     dsrList.add(snc);
                 }
                 
