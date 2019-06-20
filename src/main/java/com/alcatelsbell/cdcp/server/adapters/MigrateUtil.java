@@ -47,6 +47,9 @@ public class MigrateUtil {
 						String[] split = pair.split(Constant.namevalueSplit);
 						if (split != null && split.length == 2) {
 							map.put(split[0], split[1]);
+						} else if (split != null && split.length > 2) {
+							String[] split2 = pair.split(Constant.namevalueSplit, 2);
+							map.put(split2[0], split2[1]);
 						}
 					}
 				}
