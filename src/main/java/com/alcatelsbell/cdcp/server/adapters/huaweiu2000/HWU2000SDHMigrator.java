@@ -2840,8 +2840,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             // och带宽，根据och两端ctp的子ctp的dn判断。
             String tmRate = "";
             List<CCTP> ctps = new ArrayList<CCTP>();
-            ctps.addAll(ptp_ctpMap.get(snc.getaPtp()));
-            ctps.addAll(ptp_ctpMap.get(snc.getzPtp()));
+            if (Detect.notEmpty(ptp_ctpMap.get(snc.getaPtp()))) ctps.addAll(ptp_ctpMap.get(snc.getaPtp()));
+            if (Detect.notEmpty(ptp_ctpMap.get(snc.getzPtp()))) ctps.addAll(ptp_ctpMap.get(snc.getzPtp()));
             if (Detect.notEmpty(ctps)) {
             	getLogger().info("Migrate och[" + snc.getDn() + "]ctps size:" + ctps.size());
                 for (CCTP ctp : ctps) {
