@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.asb.mule.probe.framework.entity.CTP;
 import org.asb.mule.probe.framework.entity.CrossConnect;
@@ -2745,6 +2746,25 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             DSUtil.putIntoValueList(ctpWaveChannel,cChannel.getZend(),cChannel);
         }
         waveChannelList.clear();
+        
+        /////////////////////////////////////////////////////////////////////
+        
+        List<TrafficTrunk> trafficTrunks = sd.queryAll(TrafficTrunk.class);
+        List<String> containOduTunnels = new ArrayList<String>();
+        List<String> tunnel2dsr = new ArrayList<String>();
+        for (TrafficTrunk trafficTrunk : trafficTrunks) {
+			String rate = trafficTrunk.getRate();
+			if (rate.equals("8011")) {
+				String dn = trafficTrunk.getDn();
+				String nativeEmsName = trafficTrunk.getNativeEMSName();
+				if (StringUtils.contains(nativeEmsName, "#") 
+						&& !StringUtils.contains(nativeEmsName, "(P)") && !StringUtils.contains(nativeEmsName, "（P）")) {
+					containOduTunnels.add(nativeEmsName);
+					getLogger().info("AddPwDns: " + dn + "-name: " + nativeEmsName);
+				}
+			}
+		}
+        trafficTrunks.clear();
 
         //////////////////////////////////////////////////////////////////////
         HashMap<String,List<String>> subwave_routes = new HashMap<String, List<String>>();
@@ -2770,6 +2790,37 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             String rate = snc.getRate();
 
             if (rate != null) {
+            	// 隧道名称 含 odu名称，把odu转换为otn路径
+            	if (Detect.notEmpty(containOduTunnels)) {
+            		boolean isContains = false;
+            		for (String containOduTunnel : containOduTunnels) {
+            			String[] names = StringUtils.split(containOduTunnel, "#");
+            			if (Detect.notEmpty(names)) {
+            				int i = 0;
+            				for (String name : names) {
+            					if (i == 0) 
+            						name = StringUtils.substring(name, 0, 8);
+            					i++;
+            					if (StringUtils.containsIgnoreCase(snc.getNativeEMSName(), name)
+            							&& (StringUtils.contains(snc.getNativeEMSName(), ":") || StringUtils.contains(snc.getNativeEMSName(), "："))) {
+                        			isContains = true;
+                        			getLogger().info("matchTunnel:tunnel-" + containOduTunnel + "--" + snc.getNativeEMSName());
+                        			break;
+                        		}
+            				}
+            			}
+            			if (isContains) {
+            				break;
+            			}
+                	}
+            		if (isContains) {
+            			dsrList.add(snc);
+            			tunnel2dsr.add(snc.getDn());
+            			getLogger().info("matchTunnel:odu-" + snc.getDn());
+            			continue;
+            		}
+            	}
+            	
                 if (rate.equals(HWDic.LR_Optical_Channel.value+"")) { //40
                         ochList.add(snc);
                 }
@@ -2982,9 +3033,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             checkSuspend();
             long t1 = System.currentTimeMillis();
 
-            if (checkEndContainsSubCtp(snc.getaEnd()) || checkEndContainsSubCtp(snc.getzEnd())) {
-                getLogger().error("checkEndContainsSubCtp:"+snc.getNativeEMSName());
-                continue;
+            if (!tunnel2dsr.contains(snc.getDn())) {
+            	if (checkEndContainsSubCtp(snc.getaEnd()) || checkEndContainsSubCtp(snc.getzEnd())) {
+                    getLogger().error("checkEndContainsSubCtp:"+snc.getNativeEMSName());
+                    continue;
+                }
+            } else {
+            	getLogger().info("DO NOT checkEndContainsSubCtp:"+snc.getDn());
             }
 
             String aend = snc.getaEnd();
@@ -4228,6 +4283,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     public static void main(String[] args) throws Exception {
         URL resource = HWU2000SDHMigrator.class.getClassLoader().getResource("META-INF/persistence.xml");
         HashMap<String, String> additionalInfoMap = MigrateUtil.transMapValue("Memo:MOS/9800-MOS/1800 64S001 (W)||LinkType:Fiber||");
+        StringUtils.split("CMIP1295 Tunnel #", "#");
         DicUtil.getSpeed("47||49");
         System.out.println("resource = " + resource);
         String fileName=  "D:\\hwu2000-mt.db";
