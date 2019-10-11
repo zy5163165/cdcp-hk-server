@@ -2523,6 +2523,9 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         List<SubnetworkConnection> sncs = sd.query("select c from SubnetworkConnection c where dn like '%-wdm%'");
         HashMap<String, List<R_TrafficTrunk_CC_Section>> routeMap = queryTrafficTrunkCCSectionMap();
 
+        HashMap<String, List<String>> ots_omsMap = new HashMap<String, List<String>>();
+        HashMap<String, List<CChannel>> oms_channelMap = new HashMap<String, List<CChannel>>();
+        
         List<CChannel> waveChannelList = null;
         try {
 //            for (CrossConnect cc : ccs) {
@@ -2646,6 +2649,14 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                               coms_section.setSectiondn(route.getCcOrSectionDn());
                               coms_section.setEmsName(emsdn);
                               omsSectionList.add(coms_section);
+                              List<String> omsDns = ots_omsMap.get(route.getCcOrSectionDn());
+                              if (Detect.notEmpty(omsDns)) {
+                            	  omsDns.add(oms.getDn());
+                              } else {
+                            	  omsDns = new ArrayList<String>();
+                            	  omsDns.add(oms.getDn());
+                            	  ots_omsMap.put(route.getCcOrSectionDn(), omsDns);
+                              }
                           }
                        }
                    }
@@ -2728,6 +2739,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 	}
                 } else {
                 	getLogger().error("过滤后无法找到AZ端CTP，OMS："+cSection.getDn());
+                	// 这些OMS，都自动生成80波，每波两端端口，都直接取OMS两端端口
+                	CPTP aptp = ptpMap.get(aendTp);
+                	CPTP zptp = ptpMap.get(zendTp);
+                	List<CChannel> channels = create80Channels(cSection, aptp, zptp);
+                	waveChannelList.addAll(channels);
+                	oms_channelMap.put(cSection.getDn(), channels);
+                	
                 }
             }
             omsList.clear();
@@ -2995,6 +3013,45 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     }
             	}
             }
+            
+            // OCH关联波道新增逻辑
+            if (!Detect.notEmpty(ots_omsMap)) {
+//            	getLogger().info("PathDn = " + cPath.getDn());
+//            	getLogger().info("ots_omsMap size" + ots_omsMap.size());
+            	if (Detect.notEmpty(sncSectionDns)) {
+//            		getLogger().info("sncSectionDns size" + sncSectionDns.size());
+            		for (String otsDn : sncSectionDns) {
+            			List<String> omsDns = ots_omsMap.get(otsDn);
+            			if (Detect.notEmpty(omsDns)) {
+//            				getLogger().info("omsDns size" + omsDns.size());
+            				for (String omsDn : omsDns) {
+            					List<CChannel> channels = oms_channelMap.get(omsDn);
+            					if (Detect.notEmpty(channels)) {
+            						for (CChannel channel : channels) {
+            							String frequency = channel.getFrequencies();
+            							if (cPath.getFrequencies() == frequency) {
+            								getLogger().info("create path_channel: " + cPath.getDn());
+            								cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
+            								break;
+            							}
+            						}
+            					} else {
+            						// oms两端没有och ctp，但是却没有生成80波
+            						getLogger().info("channels is null!" + omsDn);
+            					}
+            				}
+            			} else {
+            				getLogger().info("omsDns is null!" + cPath.getDn());
+            			}
+            		}
+            	} else {
+            		getLogger().info("sncSectionDns is null!" + cPath.getDn());
+            	}
+            } else {
+            	getLogger().info("ots_omsMap is null!" + cPath.getDn());
+            }
+            
+            
 
             for (String ccDn : sncCCDns) {
                 cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, ccDn, cPath));
@@ -3022,6 +3079,9 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         di2.insert(subWaveChannelList);
         di2.end();
+        
+        ots_omsMap.clear();
+        oms_channelMap.clear();
 
         HashMap<String,List<CChannel>> ctpSubwaveChannel = new HashMap<String, List<CChannel>>();
         for (CChannel cChannel : subWaveChannelList) {
@@ -3286,6 +3346,52 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         cChannel.setEmsName(emsdn);
         return cChannel;
     }
+    private CChannel createCChanellForBothPtp(BObject parent,CPTP aptp, CPTP zptp) {
+        String aSideCtp = aptp.getDn();
+        String zSideCtp = zptp.getDn();
+        CChannel cChannel = new CChannel();
+        cChannel.setDn(aSideCtp + "<>" + zSideCtp);
+        cChannel.setSid(DatabaseUtil.nextSID(CChannel.class));
+        cChannel.setAend(aSideCtp);
+        cChannel.setZend(zSideCtp); 
+        cChannel.setSectionOrHigherOrderDn(parent.getDn());
+        cChannel.setName("och="+DNUtil.extractOCHno(aptp.getDn()));
+
+        cChannel.setNo(DNUtil.extractOCHno(aptp.getDn()));
+        cChannel.setRate(aptp.getRate());
+        cChannel.setCategory("波道");
+        cChannel.setRateDesc(SDHUtil.rateDesc(aptp.getRate()));
+        
+     // 波道频率、波长置空
+//        cChannel.setFrequencies(aptp.getFrequencies());
+//        cChannel.setWaveLen( HwDwdmUtil.getWaveLength( (aptp.getFrequencies())));
+
+        cChannel.setDirection(DicConst.CONNECTION_DIRECTION_CD_BI);
+        cChannel.setAptp(aptp.getParentDn());
+        cChannel.setZptp(zptp.getDn());
+
+        if (aptp != null && zptp != null)
+            cChannel.setTag3(aptp.getTag3()+"-"+zptp.getTag3());
+        cChannel.setEmsName(emsdn);
+        return cChannel;
+    }
+    private List<CChannel> create80Channels(BObject parent,CPTP aptp, CPTP zptp) {
+    	List<CChannel> channels = new ArrayList<>();
+    	HashMap<String,String> freqMap = HwDwdmUtil.wavelength_freq_map;
+    	if (Detect.notEmpty(freqMap)) {
+    		for (Map.Entry<String,String> entry : freqMap.entrySet()) {
+    			String frequency = entry.getKey();
+    			String WaveLength = entry.getValue();
+    			CChannel channel = createCChanellForBothPtp(parent, aptp, zptp);
+    			channel.setFrequencies(frequency);
+    			channel.setWaveLen(WaveLength);
+    			channels.add(channel);
+    		}
+    	}
+    	
+    	return channels;
+    }
+    
 	private List<CChannel> createSubwaveChannels(CPath path, CCTP pathAside, CCTP pathZside) {
 		// List<CCTP> actps = ctpParentChildMap.get(pathAside.getDn());
 		// List<CCTP> zctps = ctpParentChildMap.get(pathZside.getDn());
