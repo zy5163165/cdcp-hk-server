@@ -3015,7 +3015,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             }
             
             // OCH关联波道新增逻辑
-            if (!Detect.notEmpty(ots_omsMap)) {
+            if (Detect.notEmpty(ots_omsMap)) {
 //            	getLogger().info("PathDn = " + cPath.getDn());
 //            	getLogger().info("ots_omsMap size" + ots_omsMap.size());
             	if (Detect.notEmpty(sncSectionDns)) {
