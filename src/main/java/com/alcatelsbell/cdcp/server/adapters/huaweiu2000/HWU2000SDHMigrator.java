@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.asb.mule.probe.framework.entity.CTP;
 import org.asb.mule.probe.framework.entity.CrossConnect;
@@ -94,7 +93,6 @@ import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CCrossConnect;
 import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CRoute;
 import com.alcatelsbell.cdcp.server.adapters.CacheClass.T_CTP;
 import com.alcatelsbell.cdcp.server.adapters.MigrateUtil;
-import com.alcatelsbell.cdcp.server.adapters.PathFindAlgorithm;
 import com.alcatelsbell.cdcp.server.adapters.SDHRouteComputationUnit;
 import com.alcatelsbell.cdcp.server.adapters.SDHUtil;
 import com.alcatelsbell.cdcp.util.BObjectMemTable;
@@ -2897,6 +2895,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         }
 
 
+        List<String> pathChannels = new ArrayList<String>();
         DataInserter di2 = new DataInserter(emsid);
         for (SubnetworkConnection snc : ochList) {
             checkSuspend();
@@ -3039,21 +3038,28 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             				for (String omsDn : omsDns) {
             					List<CChannel> channels = oms_channelMap.get(omsDn);
             					if (Detect.notEmpty(channels)) {
+            						String pathFreq = cPath.getFrequencies();
+            						getLogger().info("频率比对:" + pathFreq + cPath.getDn());
             						for (CChannel channel : channels) {
-            							String frequency = channel.getFrequencies();
-            							if (cPath.getFrequencies() == frequency) {
+        								String frequency = channel.getFrequencies();
+            							if (frequency != null && frequency.equals(pathFreq)) {
+            								String pathChannelDn = cPath.getDn() + "-" + channel.getDn();
+            								if (pathChannels.contains(pathChannelDn)) {
+            									break;
+            								}
+            								pathChannels.add(pathChannelDn);
             								getLogger().info("create path_channel: " + cPath.getDn());
-            								cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
+                							cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
             								break;
             							}
             						}
-            					} else {
+            					} /*else {
             						// oms两端没有och ctp，但是却没有生成80波
             						getLogger().info("channels is null!" + omsDn);
-            					}
+            					}*/
             				}
             			} else {
-            				getLogger().info("omsDns is null!" + cPath.getDn());
+            				getLogger().info(otsDn + "-omsDns is null!" + cPath.getDn());
             			}
             		}
             	} else {
@@ -4407,6 +4413,11 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
     public static void main(String[] args) throws Exception {
         URL resource = HWU2000SDHMigrator.class.getClassLoader().getResource("META-INF/persistence.xml");
+        String a = "196.050";
+        String b = "196.050";
+        if (a == b) {
+        	
+        }
         HashMap<String, String> additionalInfoMap = MigrateUtil.transMapValue("Memo:MOS/9800-MOS/1800 64S001 (W)||LinkType:Fiber||");
         StringUtils.split("CMIP1295 Tunnel #", "#");
         DicUtil.getSpeed("47||49");
