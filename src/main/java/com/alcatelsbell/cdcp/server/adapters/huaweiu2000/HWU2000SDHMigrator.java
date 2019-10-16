@@ -2718,7 +2718,16 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                             String och = DNUtil.extractOCHno(acctp.getDn());
                             String och2 = DNUtil.extractOCHno(zcctp.getDn());
                             if (och != null && och.equals(och2)) {
-                                waveChannelList.add(createCChanell(cSection,acctp, zcctp));
+                            	CChannel channel = createCChanell(cSection,acctp, zcctp);
+                                waveChannelList.add(channel);
+                                List<CChannel> channels = oms_channelMap.get(cSection.getDn());
+                        		if (Detect.notEmpty(channels)) {
+                        			channels.add(channel);
+                        		} else {
+                        			channels = new ArrayList<CChannel>();
+                        			channels.add(channel);
+                        			oms_channelMap.put(cSection.getDn(), channels);
+                        		}
                                 break;
                             }
                         }
@@ -2727,13 +2736,31 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 	getLogger().info("过滤后无法找到ZCTP，端口："+zendTp);
                 	for (CCTP acctp : acctps) {
                 		CPTP ptp = ptpMap.get(zendTp);
-                		waveChannelList.add(createCChanellForPtp(cSection, acctp, ptp));
+                		CChannel channel = createCChanellForPtp(cSection, acctp, ptp);
+                		waveChannelList.add(channel);
+                		List<CChannel> channels = oms_channelMap.get(cSection.getDn());
+                		if (Detect.notEmpty(channels)) {
+                			channels.add(channel);
+                		} else {
+                			channels = new ArrayList<CChannel>();
+                			channels.add(channel);
+                			oms_channelMap.put(cSection.getDn(), channels);
+                		}
                 	}
                 } else if (!Detect.notEmpty(acctps) && Detect.notEmpty(zcctps)) {
                 	getLogger().info("过滤后无法找到ACTP，端口："+aendTp);
                 	for (CCTP zcctp : zcctps) {
                 		CPTP ptp = ptpMap.get(aendTp);
-                		waveChannelList.add(createCChanellForPtp(cSection, zcctp, ptp));
+                		CChannel channel = createCChanellForPtp(cSection, zcctp, ptp);
+                		waveChannelList.add(channel);
+                		List<CChannel> channels = oms_channelMap.get(cSection.getDn());
+                		if (Detect.notEmpty(channels)) {
+                			channels.add(channel);
+                		} else {
+                			channels = new ArrayList<CChannel>();
+                			channels.add(channel);
+                			oms_channelMap.put(cSection.getDn(), channels);
+                		}
                 	}
                 } else {
                 	getLogger().info("过滤后无法找到AZ端CTP，OMS："+cSection.getDn());
@@ -3025,8 +3052,11 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             	getLogger().info("routeOtsDns size = " + routeOtsDns.size());
             }
             
+            if (sncChannels == null || sncChannels.size() == 0)
+                getLogger().error("无法找到 channel,snc="+snc.getDn());
+            
             // OCH关联波道新增逻辑
-            if (Detect.notEmpty(ots_omsMap)) {
+            if (Detect.notEmpty(ots_omsMap) && !Detect.notEmpty(sncChannels)) {
 //            	getLogger().info("PathDn = " + cPath.getDn());
 //            	getLogger().info("ots_omsMap size" + ots_omsMap.size());
             	if (Detect.notEmpty(routeOtsDns)) {
