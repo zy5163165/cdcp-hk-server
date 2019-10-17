@@ -2521,7 +2521,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         List<SubnetworkConnection> sncs = sd.query("select c from SubnetworkConnection c where dn like '%-wdm%'");
         HashMap<String, List<R_TrafficTrunk_CC_Section>> routeMap = queryTrafficTrunkCCSectionMap();
 
-        HashMap<String, List<String>> ots_omsMap = new HashMap<String, List<String>>();
+        // 记录route（交叉、ots）和oms之间的关联
+        HashMap<String, List<String>> route_omsMap = new HashMap<String, List<String>>();
         HashMap<String, List<CChannel>> oms_channelMap = new HashMap<String, List<CChannel>>();
         
         List<CChannel> waveChannelList = null;
@@ -2633,12 +2634,20 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                        }
                        for (R_TrafficTrunk_CC_Section route : routes) {
                           if ("CC".equals(route.getType())) {
-                        	  COMS_CC coms_section = new COMS_CC();
-                              coms_section.setDn(SysUtil.nextDN());
-                              coms_section.setOmsdn(oms.getDn());
-                              coms_section.setCcdn(route.getCcOrSectionDn());
-                              coms_section.setEmsName(emsdn);
-                              omsCClist.add(coms_section);
+                        	  COMS_CC coms_cc = new COMS_CC();
+                              coms_cc.setDn(SysUtil.nextDN());
+                              coms_cc.setOmsdn(oms.getDn());
+                              coms_cc.setCcdn(route.getCcOrSectionDn());
+                              coms_cc.setEmsName(emsdn);
+                              omsCClist.add(coms_cc);
+                              List<String> omsDns = route_omsMap.get(route.getCcOrSectionDn());
+                              if (Detect.notEmpty(omsDns)) {
+                            	  omsDns.add(oms.getDn());
+                              } else {
+                            	  omsDns = new ArrayList<String>();
+                            	  omsDns.add(oms.getDn());
+                            	  route_omsMap.put(route.getCcOrSectionDn(), omsDns);
+                              }
                           }
                           if ("SECTION".equals(route.getType())) {
                         	  COMS_Section coms_section = new COMS_Section();
@@ -2647,13 +2656,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                               coms_section.setSectiondn(route.getCcOrSectionDn());
                               coms_section.setEmsName(emsdn);
                               omsSectionList.add(coms_section);
-                              List<String> omsDns = ots_omsMap.get(route.getCcOrSectionDn());
+                              List<String> omsDns = route_omsMap.get(route.getCcOrSectionDn());
                               if (Detect.notEmpty(omsDns)) {
                             	  omsDns.add(oms.getDn());
                               } else {
                             	  omsDns = new ArrayList<String>();
                             	  omsDns.add(oms.getDn());
-                            	  ots_omsMap.put(route.getCcOrSectionDn(), omsDns);
+                            	  route_omsMap.put(route.getCcOrSectionDn(), omsDns);
                               }
                           }
                        }
@@ -3041,29 +3050,31 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             	}
             }
             
-            HashSet<String> routeOtsDns = new HashSet<String>();
+            HashSet<String> routeDns = new HashSet<String>();
             for (R_TrafficTrunk_CC_Section route : routes) {
-            	if (route.getType().equals("SECTION")) {
-            		routeOtsDns.add(route.getCcOrSectionDn());
-            	}
+//            	if (route.getType().equals("SECTION")) {
+            		routeDns.add(route.getCcOrSectionDn());
+//            	}
             }
             
             if ("EMS:Huawei/U2000@MultiLayerSubnetwork:1@SubnetworkConnection:2017-12-19 06:55:48 - 8743 -wdm".equals(snc.getDn())) {
-            	getLogger().info("routeOtsDns size = " + routeOtsDns.size());
+            	getLogger().info("routeOtsDns size = " + routeDns.size());
             }
             
             if (sncChannels == null || sncChannels.size() == 0)
                 getLogger().error("无法找到 channel,snc="+snc.getDn());
             
             // OCH关联波道新增逻辑
-            if (Detect.notEmpty(ots_omsMap) && !Detect.notEmpty(sncChannels)) {
+            int omsNum = 0; // 关联oms数量
+            if (Detect.notEmpty(route_omsMap) && !Detect.notEmpty(sncChannels)) {
 //            	getLogger().info("PathDn = " + cPath.getDn());
 //            	getLogger().info("ots_omsMap size" + ots_omsMap.size());
-            	if (Detect.notEmpty(routeOtsDns)) {
+            	if (Detect.notEmpty(routeDns)) {
 //            		getLogger().info("sncSectionDns size" + sncSectionDns.size());
-            		for (String otsDn : routeOtsDns) {
-            			List<String> omsDns = ots_omsMap.get(otsDn);
+            		for (String routeDn : routeDns) {
+            			List<String> omsDns = route_omsMap.get(routeDn);
             			if (Detect.notEmpty(omsDns)) {
+            				omsNum = omsNum + omsDns.size();
 //            				getLogger().info("omsDns size" + omsDns.size());
             				for (String omsDn : omsDns) {
             					List<CChannel> channels = oms_channelMap.get(omsDn);
@@ -3089,7 +3100,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             					}*/
             				}
             			} else {
-            				getLogger().info(otsDn + "-omsDns is null!" + cPath.getDn());
+            				getLogger().info(routeDn + "-omsDns is null!" + cPath.getDn());
             			}
             		}
             	} else {
@@ -3099,8 +3110,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             	getLogger().info("ots_omsMap is null!" + cPath.getDn());
             }
             
+            // och没有关联到oms（och的路由和oms路由没有交集）,路由直接取接口采集的全程路由
+            if (omsNum <= 0) {
+            	getLogger().info("och no match oms:" + cPath.getDn());
+            	getLogger().info("sncCCDns=" + sncCCDns.size() + "sncSectionDns=" + sncSectionDns.size());
+            	sncCCDns = new HashSet<String>();
+            	sncSectionDns = new HashSet<String>();
+            	for (R_TrafficTrunk_CC_Section route : routes) {
+                	if ("CC".equals(route.getType())) {
+                		sncCCDns.add(route.getCcOrSectionDn());
+                	}
+                	if ("SECTION".equals(route.getType())) {
+                		sncSectionDns.add(route.getCcOrSectionDn());
+                	}
+                }
+            	getLogger().info("sncCCDns=" + sncCCDns.size() + "sncSectionDns=" + sncSectionDns.size());
+            }
             
-
             for (String ccDn : sncCCDns) {
                 cPath_ccs.add(U2000MigratorUtil.createCPath_CC(emsdn, ccDn, cPath));
             }
@@ -3108,27 +3134,25 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             for (String sectionDn : sncSectionDns) {
                 cPath_sections.add(U2000MigratorUtil.createCPath_Section(emsdn, sectionDn, cPath));
             }
-
+            
             for (CChannel subwaveChannel : sncChannels) {
                 cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, subwaveChannel, cPath));
             }
-            
+            if (!Detect.notEmpty(cPath_channels)) {
+            	getLogger().error("无法找到 cPath_channels,cPath="+cPath.getDn());
+            	cPath.setTag3("no channels");
+            }
+
             if ("EMS:Huawei/U2000@MultiLayerSubnetwork:1@SubnetworkConnection:2018-05-14 02:37:50 - 16926 -wdm".equals(snc.getDn())) {
             	getLogger().info("target och-after cPath_sections" + cPath_sections.size());
             }
 
-//            if (sncCCDns == null || sncCCDns.size() == 0)
-//                getLogger().error("无法找到 cc,snc="+snc.getDn());
-//            if (sncSectionDns == null || sncSectionDns.size() == 0)
-//                getLogger().error("无法找到 section,snc="+snc.getDn());
-            if (sncChannels == null || sncChannels.size() == 0)
-                getLogger().error("无法找到 channel,snc="+snc.getDn());
         }
 
         di2.insert(subWaveChannelList);
         di2.end();
         
-        ots_omsMap.clear();
+        route_omsMap.clear();
         oms_channelMap.clear();
 
         HashMap<String,List<CChannel>> ctpSubwaveChannel = new HashMap<String, List<CChannel>>();
