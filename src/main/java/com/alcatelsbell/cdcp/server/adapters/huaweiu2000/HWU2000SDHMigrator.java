@@ -237,7 +237,27 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         }
 		
 		// 1.SDH入库
-		try {
+		migrateSdh();
+		
+		// 2.OTN入库
+		migrateOtn();
+
+		// 3.PTN入库
+		migratePtn();
+
+		System.out.println("Migrate End at : " + df.format(new Date()));// new Date()为获取当前系统时间
+		getLogger().info("Migrate End at : " + df.format(new Date()));
+		
+		getLogger().info("release");
+
+		// ////////////////////////////////////////
+		sd.release();
+
+	}
+
+    public void migrateSdh() {
+    	try {
+    		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
 			getLogger().info("SDH入库 : Start...");
 			System.out.println("SDH入库 : Start...");
 
@@ -292,9 +312,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		} catch (Exception e) {
             getLogger().error(e, e);
         }
-		
-		// 2.OTN入库
-		try {
+    }
+    
+    public void migrateOtn() {
+    	try {
 			getLogger().info("OTN入库 : Start...");
 			System.out.println("OTN入库 : Start...");
 
@@ -342,9 +363,10 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		} catch (Exception e) {
             getLogger().error(e, e);
         }
-
-		// 3.PTN入库
-		try {
+    }
+    
+    public void migratePtn() {
+    	try {
 			getLogger().info("PTN入库 : Start...");
 			System.out.println("PTN入库 : Start...");
 
@@ -385,19 +407,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		} catch (Exception e) {
             getLogger().error(e, e);
         }
-		
-
-		System.out.println("Migrate End at : " + df.format(new Date()));// new Date()为获取当前系统时间
-		getLogger().info("Migrate End at : " + df.format(new Date()));
-		
-		getLogger().info("release");
-
-		// ////////////////////////////////////////
-		sd.release();
-
-	}
-
-
+    }
 
     public void migrateProtectionSubnetwork() throws Exception {
         executeDelete("delete from CTransmissionSystem c where c.emsName = '"+emsdn+"'",CTransmissionSystem.class);
