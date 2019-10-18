@@ -3100,7 +3100,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             								}
             								pathChannels.add(pathChannelDn);
             								getLogger().info("create path_channel: " + cPath.getDn());
-                							cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
+            								sncChannels.add(channel);
+//                							cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, channel, cPath));
             								break;
             							}
             						}
@@ -3114,14 +3115,16 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             			}
             		}
             	} else {
-            		getLogger().info("routeOtsDns is null!" + cPath.getDn());
+            		getLogger().info("routeDns is null!" + cPath.getDn());
             	}
-            } else {
-            	getLogger().info("ots_omsMap is null!" + cPath.getDn());
+            }
+            
+            if (!Detect.notEmpty(route_omsMap)) {
+            	getLogger().info("route_omsMap is null!" + cPath.getDn());
             }
             
             // och没有关联到oms（och的路由和oms路由没有交集）,路由直接取接口采集的全程路由
-            if (omsNum <= 0) {
+            if (!Detect.notEmpty(sncChannels) && omsNum <= 0) {
             	getLogger().info("och no match oms:" + cPath.getDn());
             	getLogger().info("sncCCDns=" + sncCCDns.size() + "sncSectionDns=" + sncSectionDns.size());
             	sncCCDns = new HashSet<String>();
@@ -3148,8 +3151,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             for (CChannel subwaveChannel : sncChannels) {
                 cPath_channels.add(U2000MigratorUtil.createCPath_Channel(emsdn, subwaveChannel, cPath));
             }
-            if (!Detect.notEmpty(cPath_channels)) {
-            	getLogger().error("无法找到 cPath_channels,cPath="+cPath.getDn());
+            if (!Detect.notEmpty(sncChannels)) {
+            	getLogger().error("无法找到 sncChannels,cPath="+cPath.getDn());
             	cPath.setTag3("no channels");
             }
 
@@ -3164,6 +3167,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         
         route_omsMap.clear();
         oms_channelMap.clear();
+        pathChannels.clear();
 
         HashMap<String,List<CChannel>> ctpSubwaveChannel = new HashMap<String, List<CChannel>>();
         for (CChannel cChannel : subWaveChannelList) {
