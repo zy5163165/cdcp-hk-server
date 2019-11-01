@@ -2534,6 +2534,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         // 记录route（交叉、ots）和oms之间的关联
         HashMap<String, List<String>> route_omsMap = new HashMap<String, List<String>>();
         HashMap<String, List<CChannel>> oms_channelMap = new HashMap<String, List<CChannel>>();
+        HashMap<String, CSection> omsMap = new HashMap<String, CSection>();
         
         List<CChannel> waveChannelList = null;
         try {
@@ -2635,6 +2636,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                        oms.setNativeEMSName(snc.getNativeEMSName());
                        oms.setUserLabel(snc.getUserLabel());
                        omsList.add(oms);
+                       omsMap.put(oms.getDn(), oms);
                        
                        //ccAndSections
                        List<R_TrafficTrunk_CC_Section> routes = routeMap.get(snc.getDn());
@@ -3087,6 +3089,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             				omsNum = omsNum + omsDns.size();
 //            				getLogger().info("omsDns size" + omsDns.size());
             				for (String omsDn : omsDns) {
+            					boolean getChannel = false;
             					List<CChannel> channels = oms_channelMap.get(omsDn);
             					if (Detect.notEmpty(channels)) {
             						String pathFreq = cPath.getFrequencies();
@@ -3094,6 +3097,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             						for (CChannel channel : channels) {
         								String frequency = channel.getFrequencies();
             							if (frequency != null && frequency.equals(pathFreq)) {
+            								getChannel = true;
             								String pathChannelDn = cPath.getDn() + "-" + channel.getDn();
             								if (pathChannels.contains(pathChannelDn)) {
             									break;
@@ -3105,10 +3109,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             								break;
             							}
             						}
-            					} /*else {
-            						// oms两端没有och ctp，但是却没有生成80波
-            						getLogger().info("channels is null!" + omsDn);
-            					}*/
+            					}
+            					
+            					// 匹配到oms，但是没有根据oms匹配到波道————新建一条波道
+            					if (!getChannel) {
+            						getLogger().info(routeDn + "-omsDns no channel!" + cPath.getDn());
+                					CSection oms = omsMap.get(omsDn);
+                					CPTP aptp = ptpMap.get(oms.getAendTp());
+                                	CPTP zptp = ptpMap.get(oms.getZendTp());
+                					CChannel channel = createCChanellForBothPtp(oms, aptp, zptp);
+                	    			channel.setFrequencies(cPath.getFrequencies());
+                	    			channel.setWaveLen(cPath.getWaveLen());
+                	    			channel.setNo(cPath.getFrequencies());
+                	    			channel.setTag2("createForOms");
+                	    			waveChannelList.add(channel);
+                	    			sncChannels.add(channel);
+            					}
+            					
             				}
             			} else {
             				getLogger().info(routeDn + "-omsDns is null!" + cPath.getDn());
@@ -3163,8 +3180,12 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         }
 
         di2.insert(subWaveChannelList);
+        removeDuplicateDN(waveChannelList);
+        di2.insert(waveChannelList);
         di2.end();
         
+        waveChannelList.clear();
+        omsMap.clear();
         route_omsMap.clear();
         oms_channelMap.clear();
         pathChannels.clear();
@@ -3466,7 +3487,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     	List<CChannel> channels = new ArrayList<>();
     	HashMap<String,String> freqMap = HwDwdmUtil.wavelength_freq_map;
     	if (Detect.notEmpty(freqMap)) {
-    		getLogger().info("freqMap not null!" + freqMap.size());
+//    		getLogger().info("freqMap not null!" + freqMap.size());
+    		int i = 1;
     		for (Map.Entry<String,String> entry : freqMap.entrySet()) {
     			String frequency = entry.getKey();
     			String WaveLength = entry.getValue();
@@ -3474,6 +3496,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     			channel.setDn(aptp.getDn() + "<>" + frequency);
     			channel.setFrequencies(frequency);
     			channel.setWaveLen(WaveLength);
+    			channel.setNo(String.valueOf(i));
+    			i++;
     			channel.setTag2("create80");
     			channels.add(channel);
     		}
