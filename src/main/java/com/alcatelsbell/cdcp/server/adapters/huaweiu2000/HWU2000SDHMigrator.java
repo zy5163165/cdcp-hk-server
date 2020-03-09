@@ -4505,6 +4505,15 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
     public static void main(String[] args) throws Exception {
         URL resource = HWU2000SDHMigrator.class.getClassLoader().getResource("META-INF/persistence.xml");
+        String str1 = "abc"; 
+        System.out.println(str1 == "abc");
+        String str2 = new String("abc"); 
+        System.out.println(str2 == "abc");
+        
+        Integer i1 = new Integer(1);
+        Integer i2 = new Integer(1);
+        
+        
         String a = "196.050";
         String b = "196.050";
         if (a == b) {
