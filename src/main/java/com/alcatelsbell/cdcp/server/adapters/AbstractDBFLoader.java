@@ -165,7 +165,9 @@ public abstract class AbstractDBFLoader {
 		//	getLogger().info("migrate logical = "+migrateLogical);
 
             doExecute();
+            getLogger().info("afterExecute");
             afterExecute();
+            getLogger().info("VDeviceMergeRunnable");
             VDeviceMergeRunnable vdm = new VDeviceMergeRunnable(getLogger());
             vdm.run(emsdn);
         } catch (Exception e) {
@@ -312,9 +314,13 @@ public abstract class AbstractDBFLoader {
 
 	public void afterExecute() {
 		HashMap<Class,Number> statMap = printTableStat();
+		getLogger().info("processIRMStat");
 		processIRMStat(statMap);
+		getLogger().info("saveDA");
 		saveDA();
+		getLogger().info("updateEmsStatus");
 		updateEmsStatus(Constants.CEMS_STATUS_READY);
+		getLogger().info("同步结束");
 		try {
 			CdcpServerUtil.sendMigrateLogMessage(taskSerial, emsdn, "同步结束", 100);
 		} catch (Exception e) {
@@ -546,8 +552,9 @@ public abstract class AbstractDBFLoader {
 			Map map  = new HashMap();
 			Date date = new Date();
 			map.put("date", date);
-
+			getLogger().info("executeQL");
 			JPAUtil.getInstance().executeQL(jpaSupport, "update CEMS c set c.status = " + status + ",c.updateDate = :date where c.dn = '" + emsdn + "'",map);
+			getLogger().info("executeQL-end");
 			jpaSupport.end();
 		} catch (Exception e) {
 			getLogger().error(e, e);

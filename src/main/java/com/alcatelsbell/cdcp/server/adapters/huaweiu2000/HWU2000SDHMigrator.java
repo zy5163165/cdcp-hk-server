@@ -236,6 +236,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             getLogger().error(e, e);
         }
 		
+		// 如果是全量入库，则一次删除所有ctp，节约时间
+		if (migrateLogical || isTableHasData(CTP.class)) {
+			logAction("deleteCTP", "删除CTP", 21);
+			getLogger().info("migrateSdhCtp delete...");
+			executeTableDeleteByType("C_CTP", emsdn, "");
+		}
+		
 		// 1.SDH入库
 		migrateSdh();
 		
@@ -565,7 +572,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     else if (aend.contains("type=mac") && zend.contains("type=mp")) {
                         mp = zend;  mac = aend;
                     } else {
-                        getLogger().error("异常的HW_EthService, type="+es.getServiceType()+" aend="+aend+"; zend="+zend);
+//                        getLogger().error("异常的HW_EthService, type="+es.getServiceType()+" aend="+aend+"; zend="+zend);
                         continue;
                     }
 
@@ -701,7 +708,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 }
 
                 if (zctpDns == null) {
-                    errorLog("无法找到mp另外一端的ctp，mp="+mp+" 本端ctp size = "+ctps.size());
+//                    errorLog("无法找到mp另外一端的ctp，mp="+mp+" 本端ctp size = "+ctps.size());
                 } else {
 
                     String[] zctpDnArray = zctpDns.split(Constant.listSplitReg);
@@ -801,7 +808,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     }
 
                     if (!find) {
-                        errorLog("无法找到ctp对应的mp,ctp=" + allZctpDnList);
+//                        errorLog("无法找到ctp对应的mp,ctp=" + allZctpDnList);
                         zctpDnArray = allZctpDnList.split(Constant.listSplitReg);
                         String portDn = ctpInSamePtps(zctpDnArray);
                         if (portDn != null && zctpDnArray.length > 1) {
@@ -979,9 +986,9 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 			return;
 		}
 		
-		String condition = " and dn like '%domain=sdh%' ";
-		getLogger().info("migrateSdhCtp delete...");
-		executeTableDeleteByType("C_CTP", emsdn, condition);
+//		String condition = " and dn like '%domain=sdh%' ";
+//		getLogger().info("migrateSdhCtp delete...");
+//		executeTableDeleteByType("C_CTP", emsdn, condition);
 		
 		getLogger().info("migrateSdhCtp insert...");
 		insertSdhCtps(ctps);
@@ -1352,24 +1359,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 		
 		getLogger().info("insertOtnCtps query start... ");
 		List<CTP> ctps = sd.query("select c from CTP c where dn like '%domain=wdm%'");
-		getLogger().info("insertOtnCtps query end... ");
+		getLogger().info("insertOtnCtps query end... ctps.size= " + ctps.size());
 		if (isEmptyResult(ctps))
 			return;
 
-		total = Runtime.getRuntime().totalMemory() / 1000000l;
-        free = Runtime.getRuntime().freeMemory() / 1000000l;
-        max = Runtime.getRuntime().maxMemory() / 1000000l;
-        getLogger().info("Total Memory = " + total + "M;" + " Free Memory = " + free + "M; Max Memory = " + max + "M");
+//		total = Runtime.getRuntime().totalMemory() / 1000000l;
+//        free = Runtime.getRuntime().freeMemory() / 1000000l;
+//        max = Runtime.getRuntime().maxMemory() / 1000000l;
+//        getLogger().info("Total Memory = " + total + "M;" + " Free Memory = " + free + "M; Max Memory = " + max + "M");
 		
-        
-        try {
-        	getLogger().info("insertOtnCtps query end... ctps.size= " + ctps.size());
-    		String condition = " and dn like '%domain=wdm%' ";
-    		executeTableDeleteByType("C_CTP", emsdn, condition);
-    		getLogger().info("insertOtnCtps will start... emsid= " + emsid);
-        } catch ( Exception e) {
-            getLogger().error(e, e);
-        }
+//        try {
+//    		String condition = " and dn like '%domain=wdm%' ";
+//    		getLogger().info("insertOtnCtps delete");
+//    		executeTableDeleteByType("C_CTP", emsdn, condition);
+//    		getLogger().info("insertOtnCtps delete-end... emsid= " + emsid);
+//        } catch ( Exception e) {
+//            getLogger().error(e, e);
+//        }
 		
 		total = Runtime.getRuntime().totalMemory() / 1000000l;
         free = Runtime.getRuntime().freeMemory() / 1000000l;
@@ -1380,7 +1386,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 	}
 	protected void insertOtnCtps(List<CTP> ctps) throws Exception {
         DataInserter di = new DataInserter(emsid);
-        getLogger().info("migrateCtp size = " + (ctps == null ? null : ctps.size()));
+        getLogger().info("migrateOtnCtp size = " + (ctps == null ? null : ctps.size()));
         if (ctps != null && ctps.size() > 0) {
 
             HashMap<String,List<CTP>> portCtps = new HashMap<String, List<CTP>>();
@@ -2713,8 +2719,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             				iterator.remove();
             			}
             		}
-            		int size = Detect.notEmpty(acctps)?acctps.size():0;
-            		getLogger().info("过滤后ACTP.size=" + String.valueOf(size) + "，端口："+aendTp);
+//            		int size = Detect.notEmpty(acctps)?acctps.size():0;
+//            		getLogger().info("过滤后ACTP.size=" + String.valueOf(size) + "，端口："+aendTp);
                 } else {
                 	getLogger().info("无法找到ACTP，端口："+aendTp);
                 }
@@ -2726,8 +2732,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             				iterator.remove();
             			}
             		}
-            		int size = Detect.notEmpty(zcctps)?zcctps.size():0;
-            		getLogger().info("过滤后ZCTP.size=" + String.valueOf(size) + "，端口："+zendTp);
+//            		int size = Detect.notEmpty(zcctps)?zcctps.size():0;
+//            		getLogger().info("过滤后ZCTP.size=" + String.valueOf(size) + "，端口："+zendTp);
                 } else {
                 	getLogger().info("无法找到ZCTP，端口："+zendTp);
                 }
@@ -2936,9 +2942,9 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     dsrList.add(snc);
                 }
                 
-                else {
-                    getLogger().error("unkonwn rate dsr : "+snc.getRate());
-                }
+//                else {
+//                    getLogger().error("unkonwn rate dsr : "+snc.getRate());
+//                }
             }
         }
 
@@ -3073,8 +3079,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             	getLogger().info("routeOtsDns size = " + routeDns.size());
             }
             
-            if (sncChannels == null || sncChannels.size() == 0)
-                getLogger().error("无法找到 channel,snc="+snc.getDn());
+//            if (sncChannels == null || sncChannels.size() == 0)
+//                getLogger().error("无法找到 channel,snc="+snc.getDn());
             
             // OCH关联波道新增逻辑
             int omsNum = 0; // 关联oms数量
@@ -3093,7 +3099,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             					List<CChannel> channels = oms_channelMap.get(omsDn);
             					if (Detect.notEmpty(channels)) {
             						String pathFreq = cPath.getFrequencies();
-            						getLogger().info("频率比对:" + pathFreq + cPath.getDn());
+//            						getLogger().info("频率比对:" + pathFreq + cPath.getDn());
             						for (CChannel channel : channels) {
         								String frequency = channel.getFrequencies();
             							if (frequency != null && frequency.equals(pathFreq)) {
@@ -3113,7 +3119,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             					
             					// 匹配到oms，但是没有根据oms匹配到波道————新建一条波道
             					if (!getChannel) {
-            						getLogger().info(routeDn + "-omsDns no channel!" + cPath.getDn());
+//            						getLogger().info(routeDn + "-omsDns no channel!" + cPath.getDn());
                 					CSection oms = omsMap.get(omsDn);
                 					CPTP aptp = ptpMap.get(oms.getAendTp());
                                 	CPTP zptp = ptpMap.get(oms.getZendTp());
@@ -3128,7 +3134,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             					
             				}
             			} else {
-            				getLogger().info(routeDn + "-omsDns is null!" + cPath.getDn());
+//            				getLogger().info(routeDn + "-omsDns is null!" + cPath.getDn());
             			}
             		}
             	} else {
@@ -4370,17 +4376,14 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 	}
 	
 	protected void executeTableDeleteByType(final String tableName,final String emsname,final String condition) throws Exception{
-		getLogger().info("executeTableDelete : "+tableName+" ems="+emsname);
-		
 		JPASupport ctx = new JPASupportSpringImpl("entityManagerFactoryData");
-		getLogger().info("entityManagerFactoryData : success");
 		try {
 			EntityManager entityManager = ctx.getEntityManager();
 
 			HibernateEntityManager hibernateEntityManager = (HibernateEntityManager)entityManager;
 			final AtomicBoolean finish = new AtomicBoolean(false);
+			getLogger().info("executeTableDelete : "+tableName+" ems="+emsname);
 			while (!finish.get()) {
-
                 entityManager.getTransaction().begin();
                 hibernateEntityManager.getSession().doWork(new Work() {
                     @Override
@@ -4394,7 +4397,6 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 });
                 entityManager.getTransaction().commit();
             }
-			
 			getLogger().info("executeTableDelete : "+tableName+" ems="+emsname+"-end..");
 		} catch (Exception e) {
 			getLogger().info("error : "+e.getMessage());
