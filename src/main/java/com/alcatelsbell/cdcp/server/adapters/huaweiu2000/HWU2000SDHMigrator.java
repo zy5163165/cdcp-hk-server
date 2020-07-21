@@ -3565,13 +3565,13 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         List<CCTP> all = new ArrayList<CCTP>();
         List<CCTP> cctps = ctpParentChildMap.get(parentCtp);
         if (cctps != null) {
-          //  all.addAll(cctps);
+            all.addAll(cctps);
             for (CCTP cctp : cctps) {
                 List<CCTP> c = findAllChildCTPS(cctp.getDn());
                 if (c != null && c.size() > 0) {
                     all.addAll(c);
                 } else {
-                    all.add(cctp);
+//                    all.add(cctp);
                 }
             }
         }
