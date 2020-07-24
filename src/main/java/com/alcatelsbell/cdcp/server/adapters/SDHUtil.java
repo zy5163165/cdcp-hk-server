@@ -270,6 +270,12 @@ public class SDHUtil {
         else if (rate == DicConst.LR_DSR_OTU4_Ethernet_WAN){ //huawei OTU4 8043
             return "100G";
         }
+        else if (rate == 8041) {    //huawei ODU4
+            return "100G";
+        }
+        else if (rate == 8081) {    //huawei oducn
+            return "200G";
+        }
 
 
         else if (rate == DicConst.HWEXT_LR_OCH_Data_Unit_0) {
