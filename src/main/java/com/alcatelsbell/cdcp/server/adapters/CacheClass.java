@@ -126,6 +126,7 @@ public class CacheClass {
             this.direction = ctp.getDirection();
             this.portdn = ctp.getPortdn();
             this.parentCtp = ctp.getParentCtpdn();
+            this.rateDesc = ctp.getRateDesc();
         }
         private String rate;
         private String nativeEMSName;
@@ -133,8 +134,17 @@ public class CacheClass {
         private Integer direction;
         private String portdn;
         private String parentCtp;
+        private String rateDesc;
 
-        public String getParentCtp() {
+        public String getRateDesc() {
+			return rateDesc;
+		}
+
+		public void setRateDesc(String rateDesc) {
+			this.rateDesc = rateDesc;
+		}
+
+		public String getParentCtp() {
             return parentCtp;
         }
 

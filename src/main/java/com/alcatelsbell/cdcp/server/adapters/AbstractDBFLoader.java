@@ -911,8 +911,11 @@ public abstract class AbstractDBFLoader {
 		if (equipments != null && equipments.size() > 0) {
 			for (Equipment equipment : equipments) {
 				CEquipment cEquipment = transEquipment(equipment);
-                if (cEquipment != null)
-				    di.insert(cEquipment);
+                if (cEquipment != null) {
+                	di.insert(cEquipment);
+                } else {
+                	getLogger().info("cEquipment == null"+(equipment == null ? null : equipment.getDn()));
+                }
 			}
 		}
 		di.end();
@@ -1666,12 +1669,12 @@ public abstract class AbstractDBFLoader {
 			try {
 				r = Integer.parseInt(rate);
 			} catch (NumberFormatException e) {
-				LogUtil.error(getClass(), "Unknown rate :" + rate);
+				LogUtil.error(getClass(), "Section Unknown rate :" + rate);
 			}
 			rate = DicUtil.getSpeedByRate(r);
             if (rate == null)  {
                 if (!unkownRates.contains(section.getRate())) {
-                    LogUtil.error(getClass(), "Unknown rate for speed:" + section.getRate());
+                    LogUtil.error(getClass(), "Section Unknown rate for speed:" + section.getRate());
 
                     unkownRates.add(section.getRate());
                 }

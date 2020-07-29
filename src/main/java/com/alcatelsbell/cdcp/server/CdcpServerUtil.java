@@ -351,7 +351,7 @@ public class CdcpServerUtil {
 
 			if (type.equals(CDCPConstants.EMS_TYPE_ALU_PTN)) {
 				if (ems.getTag1() != null && (ems.getTag1().equalsIgnoreCase("OTN")
-						|| ems.getTag1().equalsIgnoreCase("DWDM")) )
+						|| ems.getTag1().equalsIgnoreCase("DWDM") || ems.getTag1().equalsIgnoreCase("SDH")) )
 					loader = new ALU_OTN_Migrator(neSections,emsdn);
 				else loader = new ALUDBFMigrator(neSections, emsdn);
 
