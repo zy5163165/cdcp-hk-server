@@ -197,7 +197,8 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     @Override
 	public void doExecute() throws Exception {
 		checkEMS(emsdn, "华为");
-		
+//		migrateSdhSection();
+//		migrateOMS();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
 		System.out.println("Migrate Start at : " + df.format(new Date()));// new Date()为获取当前系统时间
 		getLogger().info("Migrate Start at : " + df.format(new Date()));
@@ -2076,7 +2077,37 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                 di.insert(csection);
 
                 cSections.add(csection);
-                sdhSectionMap.put(csection.getNativeEMSName(), csection);
+                
+                String nativeName = csection.getNativeEMSName();
+                if (StringUtils.contains(nativeName, "CMIT")) {
+                	int index = StringUtils.indexOf(nativeName, "CMIT");
+                	nativeName = StringUtils.substring(nativeName, index, index+8);
+                } else if (StringUtils.contains(nativeName, "CMIP")) {
+                	int index = StringUtils.indexOf(nativeName, "CMIP");
+                	nativeName = StringUtils.substring(nativeName, index, index+8);
+                }
+                
+                String memo = csection.getMemo();
+                String name = "";
+                if (StringUtils.contains(memo, "CMIT")) {
+                	int index = StringUtils.indexOf(memo, "CMIT");
+                	name = StringUtils.substring(memo, index, index+8);
+                	if (StringUtils.length(name) < 8) {
+                		name = nativeName;
+                	}
+                } else if (StringUtils.contains(memo, "CMIP")) {
+                	int index = StringUtils.indexOf(memo, "CMIP");
+                	name = StringUtils.substring(memo, index, index+8);
+                	if (StringUtils.length(name) < 8) {
+                		name = nativeName;
+                	}
+                } else {
+                	name = nativeName;
+                }
+                if (Detect.notEmpty(name)) {
+                	sdhSectionMap.put(name, csection);
+                }
+                
                 //sectionTable.addObject(section);
             }
             sections.clear();
@@ -2544,92 +2575,12 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
         
         List<CChannel> waveChannelList = null;
         try {
-//            for (CrossConnect cc : ccs) {
-//                if (cc.getaEndTP().equals(cc.getzEndTP()))
-//                    System.out.println("cc = " + cc);
-//                List<String> aends = DNUtil.merge(cc.getaEndNameList().split(Constant.listSplitReg));
-//                List<String> zends = DNUtil.merge(cc.getzEndNameList().split(Constant.listSplitReg));
-//                for (String aend : aends) {
-//                    for (String zend : zends) {
-//                        CCrossConnect ncc = U2000MigratorUtil.transCC(cc, aend, zend);
-//                        ncc.setId(cc.getId());
-//                        DSUtil.putIntoValueList(aptpCCMap,ncc.getAptp(),ncc);
-//    //                    DSUtil.putIntoValueList(aptpCCMap,ncc.getZptp(),ncc);
-//                    }
-//                }
-//            }
-//            List<CSection> cSections = new ArrayList<CSection>();
-//            for (Section section : sections) {
-//                CSection cSection = U2000MigratorUtil.transSection(section);
-//                cSection.setId(section.getId());
-//                cSections.add(cSection);
-//                DSUtil.putIntoValueList(ptpSectionMap,cSection.getAendTp(),cSection);
-//         //       DSUtil.putIntoValueList(ptpSectionMap,cSection.getZendTp(),cSection);
-//            }
 
             List<CSection> omsList = new ArrayList<CSection>();
             List<CSection> updateOTS = new ArrayList<CSection>();
             List<COMS_CC> omsCClist = new ArrayList<COMS_CC>();
             List<COMS_Section> omsSectionList = new ArrayList<COMS_Section>();
             // 不再使用老方法分析入库oms
-            /*
-            for (CSection cSection : cSections) {
-                String aendTp = cSection.getAendTp();
-                CPTP aptp = ptpMap.get(aendTp);
-                if (aptp == null) {
-                   continue;
-                }
-                if (HwDwdmUtil.isOMSRate(aptp.getRate())) {
-                    PathFindAlgorithm pathFindAlgorithm = new PathFindAlgorithm(getLogger(), aptpCCMap, ptpSectionMap, ptpMap);
-             //       System.out.println("startPtp="+aptp.getDn());
-                    pathFindAlgorithm.findSingleDirection(cSection,cSection.getZendTp());
-                    if (!pathFindAlgorithm.endPtp.isEmpty()) {
-                        if (pathFindAlgorithm.endPtp.size() > 1)
-                            getLogger().error("找到超过两个ENDPTP："+aptp.getDn());
-
-//                        if (aptp.getDn().equals("EMS:HZ-U2000-3-P@ManagedElement:4063234@PTP:/rack=1/shelf=3145761/slot=401/domain=wdm/port=1"))
-//                            System.out.println( );
-//                        if (aptp.getDn().equals("EMS:HZ-U2000-3-P@ManagedElement:4063243@PTP:/rack=1/shelf=3145731/slot=1/domain=wdm/port=1"))
-//                            System.out.println( );
-
-                        CSection oms = createOMS(aptp, ptpMap.get(pathFindAlgorithm.endPtp.get(0)));
-                        oms.setMemo(oms.getMemo() + "-sectionOMS");
-                        omsList.add(oms);
-                         PathFindAlgorithm.FindStack  findStacks = pathFindAlgorithm.findStacks.get(0);
-                        List ccAndSections = findStacks.ccAndSections;
-                        if (ccAndSections == null || ccAndSections.size() == 0)
-                            getLogger().error("无法找到 section,OMS="+oms.getDn());
-                        for (Object ccAndSection : ccAndSections) {
-                            if (ccAndSection instanceof CSection) {
-                             //   ((CSection) ccAndSection).setOmsDn(oms.getDn());
-                            //    updateOTS.add((CSection) ccAndSection);
-                                COMS_Section coms_section = new COMS_Section();
-                                coms_section.setDn(SysUtil.nextDN());
-                                coms_section.setOmsdn(oms.getDn());
-                                coms_section.setSectiondn(((CSection) ccAndSection).getDn());
-                                coms_section.setEmsName(emsdn);
-                                omsSectionList.add(coms_section);
-                            }
-                            if (ccAndSection instanceof CCrossConnect) {
-                                //   ((CSection) ccAndSection).setOmsDn(oms.getDn());
-                                //    updateOTS.add((CSection) ccAndSection);
-                                COMS_CC coms_section = new COMS_CC();
-                                coms_section.setDn(SysUtil.nextDN());
-                                coms_section.setOmsdn(oms.getDn());
-                                coms_section.setCcdn(((CCrossConnect) ccAndSection).getDn());
-                                coms_section.setEmsName(emsdn);
-                                omsCClist.add(coms_section);
-                            }
-                        }
-
-                    } else {
-                        getLogger().error("无法找到OMS： ptp="+aptp.getDn());
-                    }
-    //                System.out.println("startPtp=" + aptp.getDn());
-    //                System.out.println("endPtp=" + pathFindAlgorithm.endPtp+" size="+pathFindAlgorithm.endPtp.size());
-                }
-            }
-            */
             
             for (SubnetworkConnection snc : sncs) {
                 checkSuspend();
@@ -2854,6 +2805,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
         List<SubnetworkConnection> ochList = new ArrayList<SubnetworkConnection>();
         List<SubnetworkConnection> dsrList = new ArrayList<SubnetworkConnection>();
+        List<SubnetworkConnection> oduList = new ArrayList<SubnetworkConnection>();
         getLogger().info("sdhSectionMap size=" + sdhSectionMap.size());
         for (SubnetworkConnection snc : sncs) {
              checkSuspend();
@@ -2885,6 +2837,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             			}
                 	}
             		if (isContains) {
+            			snc.setTag3("tunnel");
             			dsrList.add(snc);
             			tunnel2dsr.add(snc.getDn());
             			getLogger().info("matchTunnel:odu-" + snc.getDn());
@@ -2937,17 +2890,36 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
                     dsrList.add(snc);
                 }
                 // ODU转换DSR
-                else if (isOdu2Dsr(snc, sdhSectionMap)) {
-                	getLogger().info("Odu2Dsr: " + snc.getDn());
-                    dsrList.add(snc);
+                else if (rate.equals(DicConst.LR_OCH_Transport_Unit_1+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_2+"")|| rate.equals(DicConst.LR_OCH_Transport_Unit_3+"")
+            			|| rate.equals(DicConst.LR_OCH_Data_Unit_1+"") || rate.equals(DicConst.LR_OCH_Data_Unit_2+"")|| rate.equals(DicConst.LR_OCH_Data_Unit_3+"")
+            			|| rate.equals(DicConst.LR_OCH_Data_Unit_4+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_4+"")
+            			|| rate.equals(DicConst.LR_OCH_Data_Unit_5G+"") || rate.equals(DicConst.LR_OCH_Transport_Unit_5G+"")) {
+                	oduList.add(snc);
                 }
+//                else if (isOdu2Dsr(snc, sdhSectionMap)) {
+//                	getLogger().info("Odu2Dsr: " + snc.getDn());
+//                    dsrList.add(snc);
+//                }
                 
 //                else {
 //                    getLogger().error("unkonwn rate dsr : "+snc.getRate());
 //                }
             }
         }
-
+        
+        for (SubnetworkConnection snc : dsrList) {
+        	filterMap(snc);
+        }
+        
+        getLogger().info("dsr before size : " + dsrList.size());
+        for (SubnetworkConnection snc : oduList) {
+        	if (odu2Dsr(snc)) {
+        		getLogger().info("odu2Dsr : " + snc.getDn());
+        		snc.setTag3("sdhsection");
+        		dsrList.add(snc);
+        	}
+        }
+        getLogger().info("dsr after size : " + dsrList.size());
 
         List<String> pathChannels = new ArrayList<String>();
         DataInserter di2 = new DataInserter(emsid);
@@ -3220,6 +3192,7 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
             CRoute cRoute = U2000MigratorUtil.transRoute(emsdn, snc);
             cRoute.setCategory("DSR");
             cRoute.setTag1(MigrateUtil.transMapValue(snc.getAdditionalInfo()).get("Customer"));
+            cRoute.setTag3(snc.getTag3());
             cRoutes.add(cRoute);
             if  (snc.getaEnd().startsWith("EMS:ZJ-U2000-1-OTN@ManagedElement:33554554") && cRoute.getNativeEmsName().contains("Client"))
                 System.out.println("route:"+snc.getDn());
@@ -3369,6 +3342,33 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
     	}
     	
     	return false;
+    }
+    
+    private void filterMap(SubnetworkConnection snc) {
+    	Set<String> names = sdhSectionMap.keySet();
+    	List<String> removeNames = new ArrayList<String>();
+		for (String name : names) {
+			if (StringUtils.contains(snc.getNativeEMSName(), name)) {
+				getLogger().info("Remove sdhSection : " + name);
+//				sdhSectionMap.remove(name);
+				removeNames.add(name);
+			}
+		}
+		if (Detect.notEmpty(removeNames)) {
+			for (String name : removeNames) {
+				sdhSectionMap.remove(name);
+			}
+		}
+    }
+    
+    private boolean odu2Dsr(SubnetworkConnection snc) {
+    	Set<String> names = sdhSectionMap.keySet();
+		for (String name : names) {
+			if (StringUtils.contains(snc.getNativeEMSName(), name)) {
+				return true;
+			}
+		}
+		return false;
     }
     
     private CSection createOMS( CPTP aptp, CPTP zptp) throws Exception {
@@ -4507,6 +4507,23 @@ public class HWU2000SDHMigrator  extends AbstractDBFLoader {
 
     public static void main(String[] args) throws Exception {
         URL resource = HWU2000SDHMigrator.class.getClassLoader().getResource("META-INF/persistence.xml");
+        HashMap<String,String> sdhSectionMap = new HashMap<String, String>();
+        sdhSectionMap.put("1", "abc");
+        sdhSectionMap.put("2", "bcd");
+        sdhSectionMap.put("3", "cde");
+        Set<String> names = sdhSectionMap.keySet();
+        List<String> removeNames = new ArrayList<String>();
+		for (String name : names) {
+			if (StringUtils.contains("3", name)) {
+				removeNames.add(name);
+			}
+		}
+		if (Detect.notEmpty(removeNames)) {
+			for (String name : removeNames) {
+				sdhSectionMap.remove(name);
+			}
+		}
+        
         String str1 = "abc"; 
         System.out.println(str1 == "abc");
         String str2 = new String("abc"); 
